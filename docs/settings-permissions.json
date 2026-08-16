@@ -1,0 +1,71 @@
+{
+  "_readme": "loopforge 权限硬约束参考。合并进 <项目>/.claude/settings.json 时，删掉所有 _ 开头的键（它们只是说明）。",
+  "_warning": "settings.json 的 permissions 是【会话全局】的，不是 per-agent。真正的 per-agent 隔离靠 agent frontmatter 的 tools: 白名单（见 role-permission-matrix.md §3）。本文件是【第二层保险】——防 Bash 绕过工具限制，以及防主 Claude 自己动手。",
+
+  "permissions": {
+    "deny": [
+      "Bash(sed -i:*)",
+      "Bash(tee src/*)",
+      "Bash(tee tests/*)",
+      "Bash(cp:* src/*)",
+      "Bash(mv:* src/*)",
+      "Bash(cp:* tests/*)",
+      "Bash(mv:* tests/*)",
+      "Bash(rm -rf src*)",
+      "Bash(rm -rf tests*)",
+      "Bash(pip install:*)",
+      "Bash(npm install:*)",
+      "Bash(uv add:*)",
+      "Bash(git commit --no-verify:*)"
+    ],
+
+    "ask": [
+      "Edit(docs/goal.md)",
+      "Write(docs/goal.md)",
+      "Edit(tests/run_*.py)",
+      "Edit(docs/role-permission-matrix.md)"
+    ],
+
+    "allow": [
+      "Read(**)",
+      "Grep(**)",
+      "Glob(**)",
+      "Bash(python tests/run_*.py:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(pytest:*)",
+      "Bash(mypy:*)",
+      "Bash(pyright:*)",
+      "Bash(ruff:*)",
+      "Bash(git diff:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)"
+    ]
+  },
+
+  "_deny_rationale": {
+    "sed -i / tee / cp / mv": "无 Edit/Write 的 agent（test-runner / gate-checker / goal-auditor）最可能的绕过路径——用 Bash 写文件",
+    "pip install / npm install": "test-runner 遇到 ImportError 必须如实上报，自己装了就掩盖了环境问题",
+    "git commit --no-verify": "绕过 pre-commit 钩子 = 绕过质量门"
+  },
+
+  "_ask_rationale": {
+    "docs/goal.md": "门是 Loop 的唯一判据，改门 = 改交付标准，必须人工确认",
+    "tests/run_*.py": "KNOWN_FAILURES / KNOWN_GAPS 在这里——最容易被用来把缺口合法化"
+  },
+
+  "_shell_redirect_note": "重定向（> >>）无法可靠地用 permissions 规则拦截，因为它是 shell 语法不是命令名。真正的防线是 agent frontmatter 不给 Bash 工具（impl-coder / test-author / goal-auditor 都没有），以及 gate-checker 的 G5.x git diff 事后检测。",
+
+  "_usage": [
+    "1. 合并 permissions 块进 <项目>/.claude/settings.json，删掉 _ 开头的键",
+    "2. 验证白名单生效：grep -l '^tools:' .claude/agents/*.md 应列出全部 8 个 agent",
+    "3. 跑一轮 Stage 4，用 gate-checker 的 G5.x 越权检测验证隔离真的生效",
+    "4. 若 G5.x 检出越权，说明 tools: 未生效或存在绕过路径 → 补 deny 规则"
+  ],
+
+  "_enforcement_layers": {
+    "L1_hard": "agent frontmatter tools: 白名单 —— harness 强制，最可靠",
+    "L2_hard": "settings.json permissions.deny —— 全局生效，防 Bash 绕过",
+    "L3_soft": "agent 文档里的红线条款 —— 靠 agent 自觉，会失效",
+    "L4_hard": "gate-checker G5.x git diff 事后检测 —— 唯一不依赖自觉的关卡，必须保留"
+  }
+}
