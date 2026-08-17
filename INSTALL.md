@@ -233,7 +233,7 @@ rm -rf ~/.claude/skills/loopforge
 rm ~/.claude/agents/{goal-architect,req-interrogator,srs-drafter,design-author,impl-coder,test-author,test-runner,gate-checker,goal-auditor}.md
 ```
 
-项目里的 `docs/`（goal.md / goal-doc.md / loop-status.md 等）**不会被卸载触碰**——那是你的项目数据。
+项目里的 `docs/loopforge/`（goal.md / goal-doc.md / loop-status.md 等）**不会被卸载触碰**——那是你的项目数据。
 
 ---
 

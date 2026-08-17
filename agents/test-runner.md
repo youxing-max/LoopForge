@@ -24,7 +24,7 @@ tools: Read, Bash, Grep, Glob
 
 ```
 验证组：<组名>
-Runner：tests/run_<组>.py
+Runner：loopforge-tests/run_<组>.py
 模式：full / quick
 ```
 
@@ -33,8 +33,8 @@ Runner：tests/run_<组>.py
 ### Step 1：跑 Runner
 
 ```bash
-python tests/run_<组>.py              # 全量
-python tests/run_<组>.py --quick      # 仅 smoketest
+python loopforge-tests/run_<组>.py              # 全量
+python loopforge-tests/run_<组>.py --quick      # 仅 smoketest
 ```
 
 记录：exit code、stdout、stderr、耗时。
@@ -42,7 +42,7 @@ python tests/run_<组>.py --quick      # 仅 smoketest
 ### Step 2：跑回归
 
 ```bash
-python -m pytest tests/ -q --tb=short
+python -m pytest loopforge-tests/ -q --tb=short
 ```
 
 ### Step 3：Skip 审计
@@ -66,7 +66,7 @@ grep -rn "@pytest.mark.skip\|@Disabled\|t\.Skip(\|it\.skip(" "$TEST_ROOT"
 
 ```bash
 # 参考：找出函数体内只有 returncode 断言、无其他 assert 的测试
-grep -rn -A15 "def test_" tests/ | grep -B15 "assert.*returncode == 0"
+grep -rn -A15 "def test_" loopforge-tests/ | grep -B15 "assert.*returncode == 0"
 ```
 
 对每个候选，读 SRS 对应 TC 的预期结果：预期含数值指标但断言里没有 → 报**弱断言**。
@@ -100,7 +100,7 @@ mypy src/ 2>&1 | tail -5
 ### [FAIL] 新 Bug（事实，无归因）
 | # | 测试 | 文件:行 | 断言 | 实际输出 |
 |:--|:--|:--|:--|:--|
-| 1 | test_R03_chart::test_empty | tests/test_R03_chart.py:42 | `assert 'chart' in out` | stdout 为空，stderr: `KeyError: 'data'` |
+| 1 | test_R03_chart::test_empty | loopforge-tests/test_R03_chart.py:42 | `assert 'chart' in out` | stdout 为空，stderr: `KeyError: 'data'` |
 
 ### [GAP] 功能缺口（KNOWN_GAPS 登记项）
 | # | 测试 | 缺口描述（来自 KNOWN_GAPS） |
@@ -110,12 +110,12 @@ mypy src/ 2>&1 | tail -5
 ### ⚠️ 可疑 skip
 | # | 文件:行 | reason 原文 |
 |:--|:--|:--|
-| 1 | tests/test_R05.py:18 | "分页功能未实现" |
+| 1 | loopforge-tests/test_R05.py:18 | "分页功能未实现" |
 
 ### ⚠️ 弱断言
 | # | 文件:行 | 测试 | 现有断言 | SRS 预期含 |
 |:--|:--|:--|:--|:--|
-| 1 | tests/test_R01.py:30 | test_upload_normal | 只有 `returncode == 0` | "rows=100" 行数指标 |
+| 1 | loopforge-tests/test_R01.py:30 | test_upload_normal | 只有 `returncode == 0` | "rows=100" 行数指标 |
 
 ### [WARN] 已知 Bug（KNOWN_FAILURES，不阻止）
 | # | 测试 | 登记原因 |
@@ -146,7 +146,7 @@ mypy src/ 2>&1 | tail -5
 
 | 情况 | 动作 |
 |:--|:--|
-| Runner 文件不存在 | 报 `[环境错误] tests/run_<组>.py 不存在`，不自己创建 |
+| Runner 文件不存在 | 报 `[环境错误] loopforge-tests/run_<组>.py 不存在`，不自己创建 |
 | 依赖缺失（ImportError） | 如实报，附缺失包名，**不自己 pip install** |
 | 测试卡死 | 超时后报 `[超时] <测试名> 超过 N 秒`，附已完成部分 |
 | 跑测试需要改配置 | 报 `[越界请求]`，不自己改 |

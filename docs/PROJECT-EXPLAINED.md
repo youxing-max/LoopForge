@@ -42,7 +42,7 @@ AI 立刻开始写代码。写着写着发现不知道要不要支持群聊，�
 # 判定命令
 awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0}
      /\*\*(正常路径|边界条件|异常路径)\*\*/{c++}
-     END{if(n)printf "%s:%d\n",n,c}' docs/srs/demo.md
+     END{if(n)printf "%s:%d\n",n,c}' docs/loopforge/srs/demo.md
 
 # 输出：R-01:3 R-02:3
 # 通过判据：每个 R-XX 后面的数字 ≥ 3
@@ -134,7 +134,7 @@ loopforge/                   32 个文件
 ```
 Agent(
     description="补实现",
-    prompt="读 docs/design/<需求名>.md。按以下缺口清单补实现，
+    prompt="读 docs/loopforge/design/<需求名>.md。按以下缺口清单补实现，
             只能写 $IMPL_ROOT：
             <test-runner 报告的 [GAP]/[FAIL] 原文摘录>
             设计文档没定义的行为不要自己发明，返回 [设计缺口]。",
@@ -166,7 +166,7 @@ Agent(
 
 **阶段**：0.5
 **工具**：Read, Write, Grep, Glob（无 Bash）
-**只能写**：`docs/goal-doc*.md`
+**只能写**：`docs/loopforge/goal-doc*.md`
 
 **它是唯一直接跟你对话的 agent。**
 
@@ -214,7 +214,7 @@ Agent(
 
 **阶段**：1
 **工具**：Read, Write, Grep, Glob（无 Bash）
-**只能写**：`docs/srs-raw/`
+**只能写**：`docs/loopforge/srs-raw/`
 
 **干什么**：goal-doc 定了大方向，它负责挖细节。**6 个维度，一个都不能少**：
 
@@ -250,7 +250,7 @@ Agent(
 
 需求间冲突（"极简" vs "功能全"？"快" vs "安全"？）、与存量冲突、与组织冲突（技术栈/规范/资源/时间）
 
-**产出**：`docs/srs-raw/<需求名>-interrogation.md` —— 一份待你答的问卷。
+**产出**：`docs/loopforge/srs-raw/<需求名>-interrogation.md` —— 一份待你答的问卷。
 
 **对应的门**：
 - G0.1 六维度齐全且每维度非空
@@ -263,7 +263,7 @@ Agent(
 
 **阶段**：2
 **工具**：Read, Write, Grep, Glob（无 Bash）
-**只能写**：`docs/srs/`
+**只能写**：`docs/loopforge/srs/`
 
 **干什么**：把你答完的问卷变成结构化需求文档。
 
@@ -316,7 +316,7 @@ R-200 ~ R-299   约束（兼容性/依赖/法规/时间）
 
 **阶段**：3
 **工具**：Read, Write, Grep, Glob（无 Bash）
-**只能写**：`docs/design/`
+**只能写**：`docs/loopforge/design/`
 
 **干什么**：SRS 说"要什么"，设计说"怎么做"。
 
@@ -357,7 +357,7 @@ R-200 ~ R-299   约束（兼容性/依赖/法规/时间）
 
 | 禁止 | 为什么 |
 |:--|:--|
-| 写 `tests/` 下任何文件 | 你不知道测试红绿，改测试只可能是凑绿 |
+| 写 `loopforge-tests/` 下任何文件 | 你不知道测试红绿，改测试只可能是凑绿 |
 | 改测试断言 / 加 skip / 调容差 | 假绿的头号来源 |
 | 改 SRS 或设计文档 | 那是你的输入，不是产物 |
 | 改 `KNOWN_FAILURES` | 那是 runner 的登记表 |
@@ -387,7 +387,7 @@ R-200 ~ R-299   约束（兼容性/依赖/法规/时间）
 
 **阶段**：4
 **工具**：Read, Edit, Write, Grep, Glob（**无 Bash**）
-**只能写**：`$TEST_ROOT` + `docs/verification/`
+**只能写**：`$TEST_ROOT` + `docs/loopforge/verification/`
 
 **干什么**：把 SRS 的验收口径翻译成测试代码。
 
@@ -461,7 +461,7 @@ def test_validate_encoding(self):
 **阶段**：全阶段（每个阶段退出都跑）
 **工具**：Read, **Bash**, Grep, Glob
 
-**干什么**：按 `docs/goal.md` 里写死的判定命令逐条跑，报 PASS/FAIL。
+**干什么**：按 `docs/loopforge/goal.md` 里写死的判定命令逐条跑，报 PASS/FAIL。
 
 **它是机械执行器，不是审计员**：
 
@@ -493,10 +493,10 @@ git status --porcelain | cut -c4-    # 列出本轮 agent 的全部改动
 
 | 本轮派了谁 | 只允许动 | 越权信号 |
 |:--|:--|:--|
-| impl-coder | `src/**` | 出现 `tests/**` → 🔴 |
-| test-author | `tests/**` | 出现 `src/**` → 🔴 |
+| impl-coder | `src/**` | 出现 `loopforge-tests/**` → 🔴 |
+| test-author | `loopforge-tests/**` | 出现 `src/**` → 🔴 |
 | test-runner | 无（应零改动） | 任何改动 → 🔴 |
-| goal-auditor | `docs/audit/**` | 出现代码 → 🔴 |
+| goal-auditor | `docs/loopforge/audit/**` | 出现代码 → 🔴 |
 
 越权 → 本轮结果作废 → 回滚 → 重派。
 
@@ -552,7 +552,7 @@ git status --porcelain | cut -c4-    # 列出本轮 agent 的全部改动
 
 ### ① goal-template.md —— 门清单（最长，31000 字）
 
-**这是判定标准的总集。** `/loopforge` 首次运行时复制成 `<项目>/docs/goal.md`。
+**这是判定标准的总集。** `/loopforge` 首次运行时复制成 `<项目>/docs/loopforge/goal.md`。
 
 **结构**：
 
@@ -662,7 +662,7 @@ Stage 5 门    G4.1~G4.3   Round1完成 / P0P1全修 / Round2无P0P1
 
 ### ⑤ loop-status-spec.md —— 状态文件规范
 
-`docs/loop-status.md` 是 Loop 的**唯一状态来源**。上下文会压缩、会话会断，这份文件不会。
+`docs/loopforge/loop-status.md` 是 Loop 的**唯一状态来源**。上下文会压缩、会话会断，这份文件不会。
 
 **DISPATCH 块**（机读，G5.6 的输入）：
 
@@ -771,9 +771,9 @@ allowed: src/
 已在 §2.4.4 说过规范。这里补充 `/loopforge` 的**首跑初始化逻辑**：
 
 ```bash
-test -d docs                || mkdir -p docs
-test -f docs/goal.md        || cp <全局skill>/goal-template.md docs/goal.md
-test -f docs/goal-doc.md    || echo "(待 goal-architect 填)" > docs/goal-doc.md
+test -d docs/loopforge        || mkdir -p docs/loopforge
+test -f docs/loopforge/goal.md        || cp <全局skill>/goal-template.md docs/loopforge/goal.md
+test -f docs/loopforge/goal-doc.md    || echo "(待 goal-architect 填)" > docs/loopforge/goal-doc.md
 git rev-parse --git-dir     || echo "⚠️ 非 git 仓库，G5.x 越权检测失效"
 test -f .gitignore          || 写入测试产物忽略规则
 ```
@@ -881,7 +881,7 @@ Windows 额外一步：`git config core.autocrlf false`
    └─ 主 Claude 派 goal-architect
         │
         ├─ 读 goal-doc-template.md
-        ├─ 写初版 docs/goal-doc.md（七章节 + 大量[待确认]）
+        ├─ 写初版 docs/loopforge/goal-doc.md（七章节 + 大量[待确认]）
         └─ 返回问题清单
 
 主 Claude 呈现给你：
@@ -917,7 +917,7 @@ Windows 额外一步：`git config core.autocrlf false`
 Stage 1  req-interrogator
    │  读 goal-doc §2 子系统划分
    │  按 6 维度对每个子系统拷问
-   └─ 产出 docs/srs-raw/<子系统>-interrogation.md（一份问卷）
+   └─ 产出 docs/loopforge/srs-raw/<子系统>-interrogation.md（一份问卷）
 
    你答问卷（这是第二次需要你参与）
 
@@ -928,7 +928,7 @@ Stage 2  srs-drafter
    │  读拷问清单 + 你的答卷
    │  拆条编号 R-01~R-XX
    │  每条写三层级 + 可机读验收口径
-   └─ 产出 docs/srs/<需求名>.md
+   └─ 产出 docs/loopforge/srs/<需求名>.md
 
    gate-checker 判 G1.1~G1.5
    不过 → 退回 Stage 2（根因在答卷 → 退到 Stage 1）
@@ -936,7 +936,7 @@ Stage 2  srs-drafter
 Stage 3  design-author
    │  读 SRS（唯一权威输入）
    │  写架构/接口/行为边界/错误处理/验收口径/风险
-   └─ 产出 docs/design/<需求名>.md
+   └─ 产出 docs/loopforge/design/<需求名>.md
 
    gate-checker 判 G2.1~G2.5
    不过 → 退回 Stage 3（根因在 SRS → 退到 Stage 2）
@@ -948,7 +948,7 @@ Stage 3  design-author
 
 ```
 每次派人干活前，主 Claude 必做三步（顺序不可颠倒）：
-   1. 写 docs/loop-status.md 的 DISPATCH 块
+   1. 写 docs/loopforge/loop-status.md 的 DISPATCH 块
    2. git add -A && git commit -m "pre-dispatch: test-author round 4-1"
    3. 派 agent
 
@@ -964,11 +964,11 @@ Stage 3  design-author
       跑 runner + 回归 + skip 审计 + 断言强度审计
       产出事实报告：
          [FAIL] test_R03_chart::test_empty
-                tests/test_R03_chart.py:42
+                loopforge-tests/test_R03_chart.py:42
                 断言 assert 'chart' in out
                 实际 stdout 为空，stderr: KeyError: 'data'
          [GAP]  test_R02_encoding::test_gbk 编码校验未实现
-         ⚠️ 弱断言 tests/test_R01.py:30 只有 returncode==0
+         ⚠️ 弱断言 loopforge-tests/test_R01.py:30 只有 returncode==0
       ↓ 它没有 Edit/Write，改不了任何东西
 
 [3] 主 Claude 读报告 → 只做路由（不自己修）
@@ -984,7 +984,7 @@ Stage 3  design-author
       ↓ 它没有 Bash，看不到自己改对没有
 
 [5] gate-checker 判门
-      G3.1 测试全 PASS      G5.1 impl-coder 没碰 tests/
+      G3.1 测试全 PASS      G5.1 impl-coder 没碰 loopforge-tests/
       G3.2 零可疑 skip      G5.2 test-author 没碰 src/
       G3.3 零弱断言         G5.3 test-runner 零改动
       G3.5 类型不劣化       G5.6 改动范围与 allowed 一致
@@ -1010,15 +1010,15 @@ Round 1  goal-auditor（fresh 实例）
    └─ 产出 P0/P1/P2 清单 + [AUDIT VERDICT] 结构化块
 
    主 Claude 派 impl-coder/test-author 修全部 P0/P1
-   落盘 docs/audit/round1-fixes.md
+   落盘 docs/loopforge/audit/round1-fixes.md
 
    gate-checker 判 G4.2（逐条比对编号 vs 修复记录）
 
 Round 2  goal-auditor（全新实例）
    │  🔴 prompt 里显式禁止读：
-   │     docs/audit/goal-audit-round1-*.md
-   │     docs/audit/round1-fixes.md
-   │     docs/loop-status.md（有"下一步：派 X 修 Y"会泄漏）
+   │     docs/loopforge/audit/goal-audit-round1-*.md
+   │     docs/loopforge/audit/round1-fixes.md
+   │     docs/loopforge/loop-status.md（有"下一步：派 X 修 Y"会泄漏）
    │  当作这个项目从没被审过，独立重审
    └─ 产出新的 P0/P1/P2
 
@@ -1050,10 +1050,10 @@ Round 2  goal-auditor（全新实例）
 上下文被压缩或会话断了，`/loopforge-resume` 按顺序读四份文件：
 
 ```
-1. docs/goal-doc.md      项目目标（做什么）
-2. docs/goal.md          门定义（怎么算完成）
-3. docs/loop-status.md   当前进度（卡在哪）
-4. docs/change-log.md    变更记录
+1. docs/loopforge/goal-doc.md      项目目标（做什么）
+2. docs/loopforge/goal.md          门定义（怎么算完成）
+3. docs/loopforge/loop-status.md   当前进度（卡在哪）
+4. docs/loopforge/change-log.md    变更记录
 ```
 
 **这四份文件是唯一事实来源。** 主 Claude 说"我记得上次..."一律不作数。

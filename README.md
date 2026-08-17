@@ -40,7 +40,7 @@ loopforge/
 │   ├── NEWBIE-GUIDE.md                  ← 新手指南（11 节）
 │   ├── commands-spec.md                 ← /loopforge* 命令完整规范
 │   ├── loop-status-spec.md              ← loop-status.md 字段规范
-│   ├── goal-template.md                 ← Goal 门模板（Stage 0 复制到项目 docs/goal.md）
+│   ├── goal-template.md                 ← Goal 门模板（Stage 0 复制到项目 docs/loopforge/goal.md）
 │   ├── goal-doc-template.md             ← 项目目标书模板（Stage 0.5，含"微信"完整示例）
 │   ├── role-permission-matrix.md        ← 🔴 职责隔离契约（先读这个）
 │   ├── large-project-guide.md           ← 大型项目实战（批次/契约冻结/变更/并行/成本）
@@ -55,11 +55,11 @@ loopforge/
 │   └── loopforge/SKILL.md        ← 主 Skill（编排 7 阶段 + 回退环）
 └── agents/                              ← 9 个单一职责 agent，全带 tools: 白名单
     ├── goal-architect.md                ← 项目目标书（Stage 0.5，多轮 Q&A）
-    ├── req-interrogator.md              ← 拷问（只写 srs-raw/）
-    ├── srs-drafter.md                   ← 起草 SRS（只写 srs/）
-    ├── design-author.md                 ← 设计文档（只写 design/）
+    ├── req-interrogator.md              ← 拷问（只写 docs/loopforge/srs-raw/）
+    ├── srs-drafter.md                   ← 起草 SRS（只写 docs/loopforge/srs/）
+    ├── design-author.md                 ← 设计文档（只写 docs/loopforge/design/）
     ├── impl-coder.md                    ← 实现（只写 src/，无 Bash）
-    ├── test-author.md                   ← 测试开发（只写 tests/，无 Bash）
+    ├── test-author.md                   ← 测试开发（只写 loopforge-tests/，无 Bash）
     ├── test-runner.md                   ← 测试执行（无 Edit/Write）
     ├── gate-checker.md                  ← 门机械判定 + 越权检测
     └── goal-auditor.md                  ← 双轮独立审计（无 Bash 无 Edit）
@@ -102,7 +102,7 @@ python scripts/validate_suite.py
 | 审计 + 改代码 | 审自己的修复，自证自洽 | `goal-auditor` **无 Bash 无 Edit** |
 | 自检 + 终审 | 自检印象污染终审 | `gate-checker`（机械）与 `goal-auditor`（判断）分属两个 agent |
 
-**主 Claude 也被收权**：只编排、路由、维护状态表，不直接改 `src/` `tests/`，不跑 pytest。它上下文里塞满历史，最容易"我知道这里没问题"。
+**主 Claude 也被收权**：只编排、路由、维护状态表，不直接改 `src/` `loopforge-tests/`，不跑 pytest。它上下文里塞满历史，最容易"我知道这里没问题"。
 
 **四层防线**：
 
@@ -119,8 +119,8 @@ python scripts/validate_suite.py
 |:--|:--|:--|:--|:--|
 | 阶段数 | 5 | 6（加 Stage 0 定门） | 6 | **7（加 Stage 0.5 项目目标书）** |
 | 循环范围 | 只有 Stage 4 内循环 | 全阶段 Goal 驱动回退 | 同 v2.0 | 同 v2.1 |
-| 判据位置 | 散在各阶段 | 集中 `docs/goal.md` | 同 v2.0 | 同 v2.1 |
-| **目标书** | ❌ | ❌ | ❌ | ✅ **`docs/goal-doc.md` + `goal-architect` agent** |
+| 判据位置 | 散在各阶段 | 集中 `docs/loopforge/goal.md` | 同 v2.0 | 同 v2.1 |
+| **目标书** | ❌ | ❌ | ❌ | ✅ **`docs/loopforge/goal-doc.md` + `goal-architect` agent** |
 | **职责隔离** | ❌ | ❌ | ✅ 8 个 agent | ✅ **9 个 agent + tools 白名单** |
 | **主 Claude 权限** | 编排 + 写代码 | 同左 | ✅ 纯编排 | ✅ 纯编排（含 goal-doc 落盘） |
 | **越权检测** | 无 | 无 | ✅ G5.1~G5.6 | ✅ G5.1~G5.6 + G0.5~G0.7 |
@@ -141,7 +141,7 @@ python scripts/validate_suite.py
 ## 五、6 阶段 + 回退环
 
 ```
-Stage 0  定 Goal 门        主 Claude + 用户 → docs/goal.md
+Stage 0  定 Goal 门        主 Claude + 用户 → docs/loopforge/goal.md
    ↓
 Stage 1  拷问              req-interrogator
    ↓ gate-checker 判 G0.x ──不过──> 回 Stage 1
@@ -202,7 +202,8 @@ cp -r loopforge/skills/*  <项目>/.claude/skills/
 cp -r loopforge/agents/*  <项目>/.claude/agents/
 
 # 2. Goal 门模板 + 权限契约 + 脚本
-cp loopforge/docs/goal-template.md          <项目>/docs/goal.md
+mkdir -p <项目>/docs/loopforge
+cp loopforge/docs/goal-template.md          <项目>/docs/loopforge/goal.md
 cp loopforge/docs/role-permission-matrix.md <项目>/docs/
 cp -r loopforge/scripts                     <项目>/
 
@@ -247,7 +248,7 @@ grep -l "^tools:" <项目>/.claude/agents/*.md   # 应列出全部 8 个
 ## 九、职责隔离自查（每轮 Stage 4 结束）
 
 - [ ] 本轮改 `src/` 的是 `impl-coder`？（不是主 Claude、不是 test-author）
-- [ ] 本轮改 `tests/` 的是 `test-author`？（不是 impl-coder）
+- [ ] 本轮改 `loopforge-tests/` 的是 `test-author`？（不是 impl-coder）
 - [ ] 本轮跑测试的是 `test-runner`？（不是写代码那个）
 - [ ] `git diff` 改动范围与派工职责一致？
 - [ ] `goal-auditor` 这轮调用过 Bash 吗？（应该零——它没这工具）
@@ -258,13 +259,13 @@ grep -l "^tools:" <项目>/.claude/agents/*.md   # 应列出全部 8 个
 
 | KH OFDR 专属 | 改成你的项目 |
 |:--|:--|
-| `docs/srs/` `docs/design/` `docs/audit/` | 你团队的文档目录约定 |
+| `docs/loopforge/srs/` `docs/loopforge/design/` `docs/loopforge/audit/` | 你团队的文档目录约定 |
 | 6 组验证 runner | 你的子系统分组（frontend/backend/db/infra） |
 | physics-* agent | 你领域的审查 agent（security / api / sql / ...） |
-| `tests/run_<组>.py` | 你的测试栈入口 |
+| `loopforge-tests/run_<组>.py` | 你的测试栈入口 |
 | SRS 编号 R-XX | 你的需求编号体系 |
 | Goal 门细节 | Stage 0 逐条裁剪 + 加项目专属门 |
-| **G5.x 路径规则** | **改成你的实际目录（`src/` `tests/` 若不同名必须同步改）** |
+| **G5.x 路径规则** | **改成你的实际目录（`src/` `loopforge-tests/` 若不同名必须同步改）** |
 
 **建议加的项目专属门**：
 

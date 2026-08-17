@@ -1,7 +1,7 @@
 # 项目目标书模板（Goal Doc Template）
 
 > 这是 loopforge Loop 的**驱动器**。Stage 0.5 由 `goal-architect` agent
-> 用本模板产出 `docs/goal-doc.md`，与用户多轮 Q&A 直到用户确认。
+> 用本模板产出 `docs/loopforge/goal-doc.md`，与用户多轮 Q&A 直到用户确认。
 >
 > **这不是 SRS**（R-XX 单条需求），**不是设计**（接口/行为边界），**不是 goal.md**
 > （判据清单）。它是**项目级**的流程化结构化分解：把模糊想法拆成可被 Stage 1~5
@@ -11,7 +11,7 @@
 
 ## 使用方法
 
-1. **Stage 0.5 启动时**，`goal-architect` 按本模板填初版 → 写入 `docs/goal-doc.md`
+1. **Stage 0.5 启动时**，`goal-architect` 按本模板填初版 → 写入 `docs/loopforge/goal-doc.md`
 2. **主 Claude 把必答清单呈现给用户** → 用户回答
 3. **循环改 goal-doc** → 直到用户说"确认，下一阶段"
 4. **Stage 0.5 退出** = 用户确认 + goal-doc 七大章节无 [待确认]
@@ -60,7 +60,7 @@
 | 离线推送 | 离线消息推送 | `POST /push/send` | P1 |
 | ... | ... | ... | ... |
 
-**判据**：每个子系统都必须能独立起一份 `docs/srs/<子系统>.md` 跑 Stage 4 Loop。
+**判据**：每个子系统都必须能独立起一份 `docs/loopforge/srs/<子系统>.md` 跑 Stage 4 Loop。
 
 > **不要把"通用工具"当子系统**（如"日志""配置中心"），它们是横切关注点，归 Stage 0 goal.md 的全局门。
 
@@ -138,7 +138,7 @@ ERR_MSG_RATE_LIMIT     = 42901
 - 输入校验：所有外部输入走 Pydantic/Bean Validation
 ```
 
-> 这些会变成 `docs/goal.md` 的**全局门**（G0.4 契约未破坏）。
+> 这些会变成 `docs/loopforge/goal.md` 的**全局门**（G0.4 契约未破坏）。
 
 ---
 
@@ -193,10 +193,10 @@ goal-doc 是**做什么**，goal.md 是**怎么算做完**。
 
 | goal-doc 章节 | 驱动 | 阶段 |
 |:--|:--|:--|
-| §2 子系统划分 | 拆成多个 `docs/srs-raw/<子系统>-interrogation.md` | Stage 1 |
+| §2 子系统划分 | 拆成多个 `docs/loopforge/srs-raw/<子系统>-interrogation.md` | Stage 1 |
 | §4 全局决策 + §5 不变约束 | 决定 Stage 2 SRS 里的非功能指标 | Stage 2 |
 | §3 批次切分 | 决定 Stage 4 Loop 的执行顺序 | Stage 4 |
-| §3 批次 0 + §5 不变约束 | 直接生成 `tests/run_contract.py` 和 G0.4 | Stage 0 + Stage 4 |
+| §3 批次 0 + §5 不变约束 | 直接生成 `loopforge-tests/run_contract.py` 和 G0.4 | Stage 0 + Stage 4 |
 | §6 风险 | Stage 5 审计时优先抽查 | Stage 5 |
 
 ---

@@ -9,7 +9,7 @@
 一套装在 Claude Code 里的 **7 阶段交付闭环**，由一条 `/loopforge` 命令驱动。核心不是 prompt 提醒 agent「别作弊」，而是用 `tools:` 白名单 + `permissions.deny` + git diff 事后检测，**让越权做不到**：写代码的看不到测试红绿，跑测试的改不了代码，审计的既不能跑也不能改。
 
 ```
-Stage 0   定 Goal 门         主 Claude + 用户 → docs/goal.md
+Stage 0   定 Goal 门         主 Claude + 用户 → docs/loopforge/goal.md
 Stage 0.5 项目目标书          goal-architect（多轮 Q&A）
 Stage 1   拷问                req-interrogator  → G0.x
 Stage 2   起草 SRS            srs-drafter       → G1.x
@@ -55,11 +55,11 @@ loopforge/
 ├── skills/loopforge/ 主 Skill（编排 7 阶段 + 回退环）
 ├── agents/           9 个单一职责 agent，全带 tools: 白名单
 │   ├── goal-architect     项目目标书（Stage 0.5）
-│   ├── req-interrogator   拷问（只写 srs-raw/）
-│   ├── srs-drafter        起草 SRS（只写 srs/）
-│   ├── design-author      设计文档（只写 design/）
+│   ├── req-interrogator   拷问（只写 docs/loopforge/srs-raw/）
+│   ├── srs-drafter        起草 SRS（只写 docs/loopforge/srs/）
+│   ├── design-author      设计文档（只写 docs/loopforge/design/）
 │   ├── impl-coder         实现（只写 src/，无 Bash）
-│   ├── test-author        测试开发（只写 tests/，无 Bash）
+│   ├── test-author        测试开发（只写 loopforge-tests/，无 Bash）
 │   ├── test-runner        测试执行（无 Edit/Write）
 │   ├── gate-checker       门机械判定 + 越权检测
 │   └── goal-auditor       双轮独立审计（无 Bash 无 Edit）

@@ -1,6 +1,6 @@
 ---
 name: design-author
-description: 设计文档作者 —— 按 SRS 写设计文档（架构/接口/行为边界/错误处理/验收口径）。只写 docs/design/**，禁碰代码与测试。触发词：写设计文档/设计方案/design doc
+description: 设计文档作者 —— 按 SRS 写设计文档（架构/接口/行为边界/错误处理/验收口径）。只写 docs/loopforge/design/**，禁碰代码与测试。触发词：写设计文档/设计方案/design doc
 tools: Read, Write, Grep, Glob
 ---
 
@@ -13,23 +13,23 @@ tools: Read, Write, Grep, Glob
 
 | 禁止 | 为什么 |
 |:--|:--|
-| **写 `src/**` `tests/**`** | 设计是实现的输入，不是实现 |
-| **改 `docs/srs/**`** | SRS 是你的输入。SRS 有问题 → 报告回退 Stage 2，不自己改 |
-| **引用下游文档**（`docs/verification/` `docs/test/`） | 引用单向性硬规则：设计只能引用 SRS + 同层 design。测试工件由设计派生，反向引用 = 🔴 |
+| **写 `src/**` `loopforge-tests/**`** | 设计是实现的输入，不是实现 |
+| **改 `docs/loopforge/srs/**`** | SRS 是你的输入。SRS 有问题 → 报告回退 Stage 2，不自己改 |
+| **引用下游文档**（`docs/loopforge/verification/` `loopforge-tests/`） | 引用单向性硬规则：设计只能引用 SRS + 同层 design。测试工件由设计派生，反向引用 = 🔴 |
 | **写进度/状态词**（已实现/已完成/待定/✅/❌） | 纯度规则。设计文档描述"怎么做"，不是进度表 |
 | **写具体代码路径当权威**（`src/foo.py` 会怎样） | 重构后即过时。描述模块职责，不锚死文件名 |
 
 ## 允许写的路径
 
 ```
-docs/design/**
+docs/loopforge/design/**
 ```
 
 ## 输入
 
 ```
-SRS：docs/srs/<需求名>.md        ← 唯一权威输入
-（可选）现有设计：docs/design/**  ← 保持一致性
+SRS：docs/loopforge/srs/<需求名>.md        ← 唯一权威输入
+（可选）现有设计：docs/loopforge/design/**  ← 保持一致性
 （返工场景）门失败清单：G2.x 不通过项
 ```
 
@@ -38,7 +38,7 @@ SRS：docs/srs/<需求名>.md        ← 唯一权威输入
 ```markdown
 # <需求名> 设计文档
 
-> 配套 SRS：docs/srs/<需求名>.md
+> 配套 SRS：docs/loopforge/srs/<需求名>.md
 > 生成日期：YYYY-MM-DD
 
 ## 1. 架构
@@ -103,7 +103,7 @@ SRS：docs/srs/<需求名>.md        ← 唯一权威输入
 ## 设计文档报告
 
 ### 产出
-docs/design/<需求名>.md（N 节，覆盖 R-01~R-15）
+docs/loopforge/design/<需求名>.md（N 节，覆盖 R-01~R-15）
 
 ### R-XX 覆盖
 | R-XX | 设计章节 | 接口 | 边界 | 错误处理 |

@@ -174,12 +174,12 @@ for name in sorted(found_agents):
 # `docs/goal-template.md` 会去项目目录找模板 —— 找不到，agent 就自己编一份，
 # 门判据全走样且没人发现（静默降级，不报错）。
 # 只查"套件文档"（只读模板/规范）；项目产物（goal.md / goal-doc.md /
-# loop-status.md）本来就该是裸 docs/，不在此列。
+# loop-status.md）在 <项目>/docs/loopforge/ 下，不在此列（此检查只盯套件模板）。
 _SUITE_DOCS = ["goal-template.md", "goal-doc-template.md", "role-permission-matrix.md",
                "commands-spec.md", "loop-status-spec.md", "large-project-guide.md"]
 # 扫描范围必须覆盖"会被 agent/命令在运行时读到"的全部文件。
 # 早期版本只扫 SKILL.md + agents，漏掉 commands/ 与套件文档自身之间的互引 ——
-# 而 goal-template.md 会被 cp 成 <项目>/docs/goal.md，是全流程读得最多的文件，
+# 而 goal-template.md 会被 cp 成 <项目>/docs/loopforge/goal.md，是全流程读得最多的文件，
 # 它写错路径的影响比 SKILL.md 还大。
 _PATH_TARGETS = [(skill_path, "SKILL.md")] + \
                 [(agents_dir / f"{a}.md", a) for a in sorted(found_agents)] + \
@@ -579,53 +579,53 @@ check("L6", "E6.8", "门判定命令不依赖非常备工具",
 
 probe = Path(tempfile.mkdtemp(prefix="gate_probe_"))
 try:
-    (probe / "docs" / "srs").mkdir(parents=True)
-    (probe / "docs" / "srs-raw").mkdir(parents=True)
-    (probe / "docs" / "srs" / "demo.md").write_text(FIXTURE_SRS, encoding="utf-8")
-    (probe / "docs" / "srs-raw" / "demo-interrogation.md").write_text(
+    (probe / "docs" / "loopforge" / "srs").mkdir(parents=True)
+    (probe / "docs" / "loopforge" / "srs-raw").mkdir(parents=True)
+    (probe / "docs" / "loopforge" / "srs" / "demo.md").write_text(FIXTURE_SRS, encoding="utf-8")
+    (probe / "docs" / "loopforge" / "srs-raw" / "demo-interrogation.md").write_text(
         FIXTURE_INTERROGATION, encoding="utf-8")
 
     # G0.1 六维度标题齐全（应 =6）——不数问题数
-    out, _ = run_gate(r"""grep -cE "^## 维度 [1-6]" docs/srs-raw/demo-interrogation.md""", probe)
+    out, _ = run_gate(r"""grep -cE "^## 维度 [1-6]" docs/loopforge/srs-raw/demo-interrogation.md""", probe)
     check("L6", "E6.1", "G0.1 六维度判据可执行且判准", out == "6",
           f"期望 6 实际 {out!r}")
 
     # G0.2 模糊度（"暂不考虑"是合法答案，不该命中）
     out, _ = run_gate(
-        r"""grep -icE "待定|大概|可能|差不多|tbd|todo" docs/srs-raw/demo-interrogation.md""", probe)
+        r"""grep -icE "待定|大概|可能|差不多|tbd|todo" docs/loopforge/srs-raw/demo-interrogation.md""", probe)
     check("L6", "E6.2", "G0.2 模糊度判据不误伤'暂不考虑'", out in ("0", ""),
           f"'暂不考虑'被误判为模糊词，实际命中 {out!r}")
 
     # G0.4 答卷已回填（已回填样例应 PASS）
     out, _ = run_gate(
-        r"""grep -cE "（待填）|待用户答卷" docs/srs-raw/demo-interrogation.md""", probe)
+        r"""grep -cE "（待填）|待用户答卷" docs/loopforge/srs-raw/demo-interrogation.md""", probe)
     check("L6", "E6.2a", "G0.4 已回填答卷应 PASS", out == "0",
           f"已回填样例仍命中待填残留 {out!r} → G0.4 误 FAIL")
 
     # G0.4 反例：草稿未回填（含"（待填）"和"待用户答卷"）必须 FAIL
-    (probe / "docs" / "srs-raw" / "demo-interrogation.md").write_text(
+    (probe / "docs" / "loopforge" / "srs-raw" / "demo-interrogation.md").write_text(
         FIXTURE_INTERROGATION_UNFILLED, encoding="utf-8")
     out, _ = run_gate(
-        r"""grep -cE "（待填）|待用户答卷" docs/srs-raw/demo-interrogation.md""", probe)
+        r"""grep -cE "（待填）|待用户答卷" docs/loopforge/srs-raw/demo-interrogation.md""", probe)
     check("L6", "E6.2b", "【回归】G0.4 未回填草稿必须 FAIL（防跳过用户答卷）",
           out != "0" and int(out) > 0,
           f"草稿含'（待填）'+'待用户答卷'却判 PASS → 跳过用户答卷漏洞复发（命中 {out!r}）")
     # 还原已回填样例供后续测试用
-    (probe / "docs" / "srs-raw" / "demo-interrogation.md").write_text(
+    (probe / "docs" / "loopforge" / "srs-raw" / "demo-interrogation.md").write_text(
         FIXTURE_INTERROGATION, encoding="utf-8")
 
     # G1.1 三层级（1 需求 × 3 关键词 = 3）
     out, _ = run_gate(
-        r"""awk '/^### R-/{r++} /正常路径|边界条件|异常路径/{k++} END{print r, k}' docs/srs/demo.md""",
+        r"""awk '/^### R-/{r++} /正常路径|边界条件|异常路径/{k++} END{print r, k}' docs/loopforge/srs/demo.md""",
         probe)
     parts = out.split()
     ok = len(parts) == 2 and int(parts[1]) >= 3 * int(parts[0])
     check("L6", "E6.3", "G1.1 三层级判据可执行且判准", ok, f"输出 {out!r}（需 k>=3r）")
 
     # G1.2 + G1.4 互斥回归 —— 这两条曾经死锁
-    out_g12, _ = run_gate(r"""grep -c '^```' docs/srs/demo.md""", probe)
+    out_g12, _ = run_gate(r"""grep -c '^```' docs/loopforge/srs/demo.md""", probe)
     out_g14, _ = run_gate(
-        r"""awk '/^```/{c=!c;next} !c' docs/srs/demo.md | grep -cE "已实现|已完成|待定|已确认|讨论中" """,
+        r"""awk '/^```/{c=!c;next} !c' docs/loopforge/srs/demo.md | grep -cE "已实现|已完成|待定|已确认|讨论中" """,
         probe)
     check("L6", "E6.4", "G1.2 验收口径判据可执行", out_g12 == "2",
           f"期望 2（一个命令块开+闭）实际 {out_g12!r}")
@@ -635,14 +635,14 @@ try:
 
     # G1.3 恒真假绿回归 —— 清空验收矩阵必须 FAIL
     g13_cmd = (r"""awk '/^## .*验收矩阵/{m=1;next} /^## /{m=0} m&&/^\| R-[0-9]/{n++} """
-               r"""/^### R-/{r++} END{print r, n+0}' docs/srs/demo.md""")
+               r"""/^### R-/{r++} END{print r, n+0}' docs/loopforge/srs/demo.md""")
     out, _ = run_gate(g13_cmd, probe)
     parts = out.split()
     check("L6", "E6.6", "G1.3 完整矩阵应 PASS",
           len(parts) == 2 and int(parts[1]) >= int(parts[0]), f"输出 {out!r}")
 
     empty = FIXTURE_SRS.replace("| R-01 | 单测 | TC-R01-001 | 是 |\n", "")
-    (probe / "docs" / "srs" / "demo.md").write_text(empty, encoding="utf-8")
+    (probe / "docs" / "loopforge" / "srs" / "demo.md").write_text(empty, encoding="utf-8")
     out, _ = run_gate(g13_cmd, probe)
     parts = out.split()
     caught = len(parts) == 2 and int(parts[1]) < int(parts[0])

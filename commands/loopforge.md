@@ -20,14 +20,14 @@ description: 启动 Goal 门驱动的 7 阶段闭环（loopforge）。首次运�
    bash 下用 `$HOME`，**不要用 `~`**（部分调用方不展开）。
    Windows 的 PowerShell/cmd 环境下同一目录写作 `%USERPROFILE%\.claude\skills\loopforge\`。
    下文 `<SKILL>` 指该目录。套件文档在 `<SKILL>/docs/`，
-   **项目文档在 `<当前项目>/docs/`，两者不是一回事**。
+   **项目文档在 `<当前项目>/docs/loopforge/`，两者不是一回事**。
 
 1. **初始化检查**（首次运行自动做，已初始化则跳过）：
 
    ```bash
-   mkdir -p docs
-   test -f docs/goal.md        || cp <SKILL>/docs/goal-template.md docs/goal.md
-   test -f docs/goal-doc.md    || echo "(待 goal-architect 填)" > docs/goal-doc.md
+   mkdir -p docs/loopforge
+   test -f docs/loopforge/goal.md        || cp <SKILL>/docs/goal-template.md docs/loopforge/goal.md
+   test -f docs/loopforge/goal-doc.md    || echo "(待 goal-architect 填)" > docs/loopforge/goal-doc.md
    git rev-parse --git-dir >/dev/null 2>&1 || echo "⚠️ 非 git 仓库，G5.x 越权检测失效"
    test -f .gitignore || printf '__pycache__/\n*.pyc\ntarget/\nnode_modules/\n.pytest_cache/\n' > .gitignore
    ```

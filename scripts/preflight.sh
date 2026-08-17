@@ -151,9 +151,9 @@ fi
 # ── 7. 路径变量合理性 ──
 say ""
 say "[7] 路径变量（G5.x 引用）"
-if [ -f docs/goal.md ]; then
-  IMPL="$(grep -m1 '^IMPL_ROOT=' docs/goal.md 2>/dev/null | tr -d '\r' | sed 's/.*=//; s/"//g')"
-  TEST="$(grep -m1 '^TEST_ROOT=' docs/goal.md 2>/dev/null | tr -d '\r' | sed 's/.*=//; s/"//g')"
+if [ -f docs/loopforge/goal.md ]; then
+  IMPL="$(grep -m1 '^IMPL_ROOT=' docs/loopforge/goal.md 2>/dev/null | tr -d '\r' | sed 's/.*=//; s/"//g')"
+  TEST="$(grep -m1 '^TEST_ROOT=' docs/loopforge/goal.md 2>/dev/null | tr -d '\r' | sed 's/.*=//; s/"//g')"
   if [ -n "$IMPL" ] && [ -n "$TEST" ]; then
     ok "IMPL_ROOT=$IMPL  TEST_ROOT=$TEST"
     # 致命组合：Maven 布局下两者互为前缀
@@ -162,10 +162,10 @@ if [ -f docs/goal.md ]; then
       *)        ok "两个路径不互为前缀" ;;
     esac
   else
-    warn "docs/goal.md 未声明 IMPL_ROOT/TEST_ROOT —— 沿用默认 src//tests/ 假设"
+    warn "docs/loopforge/goal.md 未声明 IMPL_ROOT/TEST_ROOT —— 沿用默认 src//loopforge-tests/ 假设"
   fi
 else
-  warn "无 docs/goal.md —— Stage 0 还没做（cp docs/goal-template.md docs/goal.md）"
+  warn "无 docs/loopforge/goal.md —— Stage 0 还没做（cp <SKILL_DOCS>/goal-template.md docs/loopforge/goal.md）"
 fi
 
 # ── 8. 实跑一条真判据 ──

@@ -37,8 +37,9 @@
 ```bash
 cp -r .claude/skills/loopforge/*  .claude/skills/
 cp -r .claude/agents/*  .claude/agents/         # 假设套件已展开
-cp docs/goal-template.md       docs/goal.md
-cp docs/goal-doc-template.md   docs/goal-doc-template.md
+mkdir -p docs/loopforge
+cp docs/goal-template.md       docs/loopforge/goal.md
+cp docs/goal-doc-template.md   docs/loopforge/goal-doc-template.md
 cp -r scripts .
 
 bash scripts/preflight.sh      # 必须 0 阻断
@@ -96,7 +97,7 @@ Q4: 离线消息要支持吗？
 
 ### 2.3 产出物
 
-你会看到 `docs/goal-doc.md` 落盘，里面 7 个章节：
+你会看到 `docs/loopforge/goal-doc.md` 落盘，里面 7 个章节：
 
 ```
 ## 0. 一句话定义
@@ -148,7 +149,7 @@ Stage 5   双轮独立审计     goal-auditor ×2
 
 任何时候可以叫停：
 - `Ctrl+C` 取消当前 agent
-- 上下文被压缩 → 主 Claude 读 `docs/loop-status.md` 恢复
+- 上下文被压缩 → 主 Claude 读 `docs/loopforge/loop-status.md` 恢复
 - 决定改方向 → 告诉主 Claude，主 Claude 派 `goal-architect` 改 goal-doc，或重做阶段
 
 ---
@@ -163,13 +164,13 @@ bash scripts/preflight.sh
 python scripts/validate_suite.py
 
 # 3. 看当前进度（跨会话恢复）
-cat docs/loop-status.md
+cat docs/loopforge/loop-status.md
 
 # 4. 看 Goal 门定义
-cat docs/goal.md
+cat docs/loopforge/goal.md
 
 # 5. 看项目目标书
-cat docs/goal-doc.md
+cat docs/loopforge/goal-doc.md
 ```
 
 ---
@@ -180,7 +181,7 @@ cat docs/goal-doc.md
 
 | 批次 | 内容 | 跑通条件 |
 |:--|:--|:--|
-| **0 契约** | API schema / 错误码 / 模块边界 | 跑 `tests/run_contract.py` 全绿 |
+| **0 契约** | API schema / 错误码 / 模块边界 | 跑 `loopforge-tests/run_contract.py` 全绿 |
 | A 数据层 | 数据库 schema / 模型 | 跑 A 批测试 + 契约 |
 | B 业务层 | 核心逻辑 | 跑 B 批 + 契约 + A 批回归 |
 | ... | ... | ... |
@@ -248,10 +249,10 @@ goal-architect：
    [用户答完，goal-doc 落盘]
 用户：「确认，下一阶段」
    ↓
-[Stage 1] req-interrogator → docs/srs-raw/todo-interrogation.md
-[Stage 2] srs-drafter      → docs/srs/todo.md（R-01~R-05）
-[Stage 3] design-author    → docs/design/todo.md
-[Stage 4] test-author      → tests/test_R*.py + tests/run_todo.py
+[Stage 1] req-interrogator → docs/loopforge/srs-raw/todo-interrogation.md
+[Stage 2] srs-drafter      → docs/loopforge/srs/todo.md（R-01~R-05）
+[Stage 3] design-author    → docs/loopforge/design/todo.md
+[Stage 4] test-author      → loopforge-tests/test_R*.py + loopforge-tests/run_todo.py
          test-runner       → FAIL（实现还没写）
          impl-coder        → 改 src/todo.py
          test-runner       → ✅ PASS
@@ -271,7 +272,7 @@ goal-architect：
 | 同一门连续 3 轮失败 | 需求不可行 / 门过严 | 回到 Stage 0 复审 |
 | 累计回退 > 10 次 | 门定义矛盾 | 回到 Stage 0 |
 | Round 3 仍有 P0 | 实现问题严重 | 升级 — 决定要修还是要改 goal-doc |
-| 上下文被压缩 | 主 Claude 上下文归零 | 不影响 —— 读 `docs/loop-status.md` 恢复 |
+| 上下文被压缩 | 主 Claude 上下文归零 | 不影响 —— 读 `docs/loopforge/loop-status.md` 恢复 |
 
 ---
 

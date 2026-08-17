@@ -1,7 +1,7 @@
 # Goal 门清单（Goal Gates）
 
 > 这是 loopforge Loop 的**唯一交付判据**——5 阶段退出时都跑这份清单，全绿才算交付。
-> 文件位置：`<项目>/docs/goal.md`
+> 文件位置：`<项目>/docs/loopforge/goal.md`
 > 生成时机：Stage 0（Loop 启动时由主 Claude + 用户协作填写一次）
 
 ---
@@ -42,18 +42,18 @@ bash -c '<判定命令>'
 ```bash
 # ── 路径（G5.x 角色越权检测全族引用）──
 IMPL_ROOT="src/"              # Maven: src/main/  Gradle: src/main/  Go: internal/  Node: src/
-TEST_ROOT="tests/"            # Maven: src/test/  Gradle: src/test/  Go: 同包*_test.go  Node: tests/
+TEST_ROOT="loopforge-tests/"   # Maven: src/test/  Gradle: src/test/  Go: 同包*_test.go  Node: tests/
 
 # ── 命令（G3.x 引用）──
-TEST_CMD="python tests/run_<组>.py"      # Maven: mvn -q test   Go: go test ./...   Node: npx jest --ci
-RUNNER="tests/run_<组>.py"               # runner 文件路径，G3.6 读它的 KNOWN_FAILURES
+TEST_CMD="python loopforge-tests/run_<组>.py"      # Maven: mvn -q test   Go: go test ./...   Node: npx jest --ci
+RUNNER="loopforge-tests/run_<组>.py"               # runner 文件路径，G3.6 读它的 KNOWN_FAILURES
 TYPE_CMD="mypy src/"                     # Java: mvn -q compile  Go: go vet ./...   TS: tsc --noEmit
 
 # ── 多批次项目追加变量（单批次项目留空）──
 # G0.4 契约门：批次 0 交付后冻结，每次验收前跑
-CONTRACT_CMD="python tests/run_contract.py"   # 与你项目的 run_contract 路径一致
+CONTRACT_CMD="python loopforge-tests/run_contract.py"   # 与你项目的 run_contract 路径一致
 # G3.7 跨批回归门：本批次改动没破坏已完成批次
-FULL_TEST_CMD="for r in tests/run_*.py; do \$r || exit 1; done"   # 跑全部 runner
+FULL_TEST_CMD="for r in loopforge-tests/run_*.py; do \$r || exit 1; done"   # 跑全部 runner
 # 当前批次标识（用于 loop-status 路径与 G5.6 白名单）
 BATCH="batch-X"   # 例如 batch-A
 ```
@@ -62,10 +62,10 @@ BATCH="batch-X"   # 例如 batch-A
 
 | 栈 | IMPL_ROOT | TEST_ROOT | TEST_CMD | TYPE_CMD |
 |:--|:--|:--|:--|:--|
-| Python/pytest | `src/` | `tests/` | `python tests/run_<组>.py` | `mypy src/` |
+| Python/pytest | `src/` | `loopforge-tests/` | `python loopforge-tests/run_<组>.py` | `mypy src/` |
 | **Java/Maven** | **`src/main/`** | **`src/test/`** | `mvn -q -Dgroups=<组> test` | `mvn -q compile` |
 | Go | `internal/` `cmd/` | `*_test.go`（同包） | `go test ./... -tags=<组>` | `go vet ./...` |
-| Node/Jest | `src/` | `tests/` | `npx jest --selectProjects <组>` | `tsc --noEmit` |
+| Node/Jest | `src/` | `loopforge-tests/` | `npx jest --selectProjects <组>` | `tsc --noEmit` |
 
 > 🔴 **Java/Go 用户必读**：
 > - **Maven/Gradle**：实现在 `src/main/java`、测试在 `src/test/java`，**都在 `src/` 下**。沿用默认值 → `impl-coder` 改测试凑绿时 G5.1 恒为 0 → **永远绿灯**。失效方式是静默放行不是报错。
@@ -92,9 +92,9 @@ test -f docs/type-baseline.txt || echo "⚠️  无类型基线 → G3.5 无法�
 
 | Goal | 内容 | 自动判定命令 | 通过判据 | 失败回退到 | 严重 |
 |:-----|:-----|:--------------|:---------|:-----------|:-----|
-| **G0.5** | goal-doc 七大章节齐 | `for s in "## 0" "## 1" "## 2" "## 3" "## 4" "## 5" "## 6" "## 7"; do grep -qE "^$s\\." docs/goal-doc.md && echo ok || echo MISSING:$s; done \| grep -c MISSING` | = 0（七大章节标题都在） | Stage 0.5 补章节 | 阻断 |
-| **G0.6** | 范围外 ≥ 1 条 | `grep -cE "P[0-9]\|未来\|暂不\|不做" docs/goal-doc.md` | ≥ 1 | Stage 0.5 加范围外声明 | 警告 |
-| **G0.7** | 用户已确认 | `grep -cE "\[待用户拍板\]\|\[待确认\]\|\[待澄清\]" docs/goal-doc.md` | ≤ 3 | Stage 0.5 重审循环 | 警告 |
+| **G0.5** | goal-doc 七大章节齐 | `for s in "## 0" "## 1" "## 2" "## 3" "## 4" "## 5" "## 6" "## 7"; do grep -qE "^$s\\." docs/loopforge/goal-doc.md && echo ok || echo MISSING:$s; done \| grep -c MISSING` | = 0（七大章节标题都在） | Stage 0.5 补章节 | 阻断 |
+| **G0.6** | 范围外 ≥ 1 条 | `grep -cE "P[0-9]\|未来\|暂不\|不做" docs/loopforge/goal-doc.md` | ≥ 1 | Stage 0.5 加范围外声明 | 警告 |
+| **G0.7** | 用户已确认 | `grep -cE "\[待用户拍板\]\|\[待确认\]\|\[待澄清\]" docs/loopforge/goal-doc.md` | ≤ 3 | Stage 0.5 重审循环 | 警告 |
 
 > **为什么 G0.5~G0.7 是必加的**：没有 goal-doc 七章节全章检查，主 Claude 容易让 agent 跳过任一章（如漏画系统边界、漏写范围外）—— 漏一章 = 项目分解有盲点，Stage 1 拷问会一直撞同一面墙。
 >
@@ -107,9 +107,9 @@ test -f docs/type-baseline.txt || echo "⚠️  无类型基线 → G3.5 无法�
 | Goal | 内容 | 自动判定命令（示例） | 通过判据 | 失败回退到 | 严重 |
 |:-----|:-----|:---------------------|:---------|:-----------|:-----|
 | **G0.1** | 6 维度全拷问且非空壳 | `awk '/^## 维度 [1-6]/{d++;q[d]=0;next} /^- *Q[0-9]/{q[d]++} /^\| *[A-Z][0-9]/{q[d]++} END{for(i=1;i<=d;i++) if(q[i]==0) bad++; print d, bad+0}'` | 输出 `6 0`（六维度齐 **且每维度非空**） | Stage 1 补拷问 | 阻断 |
-| **G0.2** | 无未决项 | `grep -icE "待定\|待确认\|TBD\|TODO\|回头再说\|再说吧" docs/srs-raw/<需求>-interrogation.md` | 命中 = 0 | Stage 1 重拷问 | 阻断 |
+| **G0.2** | 无未决项 | `grep -icE "待定\|待确认\|TBD\|TODO\|回头再说\|再说吧" docs/loopforge/srs-raw/<需求>-interrogation.md` | 命中 = 0 | Stage 1 重拷问 | 阻断 |
 | **G0.3** | 冲突已裁决 | `awk '/^\| *C[0-9]/{t++; if($NF ~ /^ *\|? *$/ \|\| $0 ~ /（待填）/) bad++} END{print t+0, bad+0}'` | 第二个数 = 0（冲突表每行裁决列非空） | Stage 1 重拷问 | 阻断 |
-| **G0.4** | 答卷已回填 | `grep -cE "（待填）\|待用户答卷" docs/srs-raw/<需求>-interrogation.md` | 命中 = 0（无待填残留 + 回填状态非"待用户答卷"） | Stage 1 回用户答卷 | 阻断 |
+| **G0.4** | 答卷已回填 | `grep -cE "（待填）\|待用户答卷" docs/loopforge/srs-raw/<需求>-interrogation.md` | 命中 = 0（无待填残留 + 回填状态非"待用户答卷"） | Stage 1 回用户答卷 | 阻断 |
 
 > **G0.4 是 v2.4 新增门，堵的是流程意图与判据的缺口**：
 > 原 G0.1~G0.3 只查问卷**结构**（6 维度齐/无未决词/冲突裁决列非空），**从不查答卷列填没填**。实测：req-interrogator 产出草稿后，主 Claude 跳过用户答卷直接判 G0.1~G0.3 全绿冲进 Stage 2——把所有需求假设压在 agent 推荐默认值上，而流程意图（NEWBIE-GUIDE §2「回答问题 / 你答 Q1=A」）明确要用户答卷。
@@ -127,17 +127,17 @@ test -f docs/type-baseline.txt || echo "⚠️  无类型基线 → G3.5 无法�
 
 | Goal | 内容 | 自动判定命令（示例） | 通过判据 | 失败回退到 | 严重 |
 |:-----|:-----|:---------------------|:---------|:-----------|:-----|
-| **G1.1** | 每条 R-XX 三层级 | `awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} /\*\*(正常路径\|边界条件\|异常路径)\*\*/{c++} END{if(n)printf "%s:%d\n",n,c}' docs/srs/<需求>.md` | **每个** `R-XX:N` 的 N ≥ 3 | Stage 2 补起草 | 阻断 |
-| **G1.2** | 每条 R-XX 验收口径含命令 | `awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} /^```/{c++} END{if(n)printf "%s:%d\n",n,c}' docs/srs/<需求>.md` | **每个** `R-XX:N` 的 N ≥ 2（开+闭） | Stage 2 补起草 | 阻断 |
+| **G1.1** | 每条 R-XX 三层级 | `awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} /\*\*(正常路径\|边界条件\|异常路径)\*\*/{c++} END{if(n)printf "%s:%d\n",n,c}' docs/loopforge/srs/<需求>.md` | **每个** `R-XX:N` 的 N ≥ 3 | Stage 2 补起草 | 阻断 |
+| **G1.2** | 每条 R-XX 验收口径含命令 | `awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} /^```/{c++} END{if(n)printf "%s:%d\n",n,c}' docs/loopforge/srs/<需求>.md` | **每个** `R-XX:N` 的 N ≥ 2（开+闭） | Stage 2 补起草 | 阻断 |
 | **G1.3** | 验收矩阵无遗漏 | 见下方脚本（**去重 R 编号**比对） | 未覆盖集合为空 | Stage 2 补起草 | 阻断 |
-| **G1.4** | 纯度达标 | `awk '/^```/{c=!c;next} !c' docs/srs/<需求>.md \| sed 's/`[^`]*`//g' \| grep -cE "已实现\|已完成\|待定\|已确认\|讨论中"` | 命中 = 0 | Stage 2 重起草 | 阻断 |
-| **G1.5** | 每条 R-XX 标优先级 | `awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} /优先级/&&/P[012]/{c++} END{if(n)printf "%s:%d\n",n,c}' docs/srs/<需求>.md` | **每个** `R-XX:N` 的 N ≥ 1 | Stage 2 补起草 | 警告 |
+| **G1.4** | 纯度达标 | `awk '/^```/{c=!c;next} !c' docs/loopforge/srs/<需求>.md \| sed 's/`[^`]*`//g' \| grep -cE "已实现\|已完成\|待定\|已确认\|讨论中"` | 命中 = 0 | Stage 2 重起草 | 阻断 |
+| **G1.5** | 每条 R-XX 标优先级 | `awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} /优先级/&&/P[012]/{c++} END{if(n)printf "%s:%d\n",n,c}' docs/loopforge/srs/<需求>.md` | **每个** `R-XX:N` 的 N ≥ 1 | Stage 2 补起草 | 警告 |
 
 **G1.3 判定脚本**（`grep -c` 数行数会被"一条需求占多行"蒙混，必须去重编号）：
 
 ```bash
-R=$(grep -oE '^### (R-[0-9]+)' docs/srs/<需求>.md | awk '{print $2}' | sort -u)
-M=$(awk '/^## .*验收矩阵/{f=1;next} /^## /{f=0} f' docs/srs/<需求>.md | grep -oE 'R-[0-9]+' | sort -u)
+R=$(grep -oE '^### (R-[0-9]+)' docs/loopforge/srs/<需求>.md | awk '{print $2}' | sort -u)
+M=$(awk '/^## .*验收矩阵/{f=1;next} /^## /{f=0} f' docs/loopforge/srs/<需求>.md | grep -oE 'R-[0-9]+' | sort -u)
 comm -23 <(echo "$R") <(echo "$M")     # 有输出 = 这些需求没进验收矩阵
 ```
 
@@ -153,9 +153,9 @@ comm -23 <(echo "$R") <(echo "$M")     # 有输出 = 这些需求没进验收矩
 
 | Goal | 内容 | 自动判定命令 | 通过判据 | 失败回退到 | 严重 |
 |:-----|:-----|:--------------|:---------|:-----------|:-----|
-| **G2.1** | 引用单向性 | `grep -oE '\(\.{0,2}/?docs/[a-z-]+/' docs/design/<需求>.md \| grep -cvE 'docs/(srs\|design\|physics)/'` | =0（设计只可引用 SRS/同层/推导书，不引用下游 verification/test/audit） | Stage 3 重写 | 阻断 |
+| **G2.1** | 引用单向性 | `grep -oE '\(\.{0,2}/?docs/loopforge/[a-z-]+/' docs/loopforge/design/<需求>.md \| grep -cvE 'docs/loopforge/(srs\|design\|physics)/'` | =0（设计只可引用 SRS/同层/推导书，不引用下游 verification/loopforge-tests/audit） | Stage 3 重写 | 阻断 |
 | **G2.2** | 内部一致 | **移交 `goal-auditor` 维度 F**（价值判断，非机械可判） | 审计无 🔴 | Stage 3 重写 | 阻断 |
-| **G2.3** | 纯度 | `awk '/^```/{c=!c;next} !c' docs/design/<需求>.md \| sed 's/`[^`]*`//g' \| grep -cE "已实现\|已完成\|待定\|已确认\|讨论中\|✅\|❌"` | =0 | Stage 3 重写 | 阻断 |
+| **G2.3** | 纯度 | `awk '/^```/{c=!c;next} !c' docs/loopforge/design/<需求>.md \| sed 's/`[^`]*`//g' \| grep -cE "已实现\|已完成\|待定\|已确认\|讨论中\|✅\|❌"` | =0 | Stage 3 重写 | 阻断 |
 | **G2.4** | R-XX 全覆盖设计 | 同 G1.3 脚本，比对 SRS 需求编号 vs 设计文档出现的编号 | 未覆盖集合为空 | Stage 3 补设计 | 阻断 |
 | **G2.5** | 接口签名明确 | **移交 `goal-auditor` 维度 F**（跨语言签名正则不可能统一） | 审计确认关键接口有类型 | Stage 3 补设计 | 警告 |
 
@@ -170,7 +170,7 @@ comm -23 <(echo "$R") <(echo "$M")     # 有输出 = 这些需求没进验收矩
 | **G3.1** | 测试全 PASS | `$TEST_CMD; echo $?`（`TEST_CMD` 见 Stage 0 变量） | exit = 0 | Stage 4 修复代码 | 阻断 |
 | **G3.2** | 零可疑 skip | `grep -rE '@pytest\.mark\.skip\|@Disabled\|t\.Skip\|it\.skip' $TEST_ROOT \| grep -cE '未实现\|待定\|未明确\|暂不\|TODO\|not implemented'` | =0 | Stage 4 重写测试 | 阻断 |
 | **G3.3** | 零弱断言 | **移交 `goal-auditor` 维度 C**（断言强不强是价值判断） | 审计无弱断言 P1 | Stage 4 补断言 | 阻断 |
-| **G3.4** | ~~回归全绿~~ | **已并入 G3.1**（原判据 `pytest tests/test_R*.py -v` 与 G3.1 重复，且 glob 无匹配时 pytest 退 4、零用例退 5，判据没说看什么） | — | — | — |
+| **G3.4** | ~~回归全绿~~ | **已并入 G3.1**（原判据 `pytest loopforge-tests/test_R*.py -v` 与 G3.1 重复，且 glob 无匹配时 pytest 退 4、零用例退 5，判据没说看什么） | — | — | — |
 | **G3.5** | 类型不劣化 | `$TYPE_CMD 2>&1 \| grep -c "error:"` 与 `docs/type-baseline.txt` 比对 | ≤ 基线值 | Stage 4 修复类型 | 警告 |
 | **G3.6** | **KNOWN_FAILURES 为空** | `awk '/KNOWN_FAILURES *=/{f=1} f&&/\]/{f=0} f&&/["'"'"']/{n++} END{print n+0}' $RUNNER` | =0 | Stage 4 修复代码 | 阻断 |
 
@@ -184,15 +184,15 @@ comm -23 <(echo "$R") <(echo "$M")     # 有输出 = 这些需求没进验收矩
 
 | Goal | 内容 | 自动判定命令 | 通过判据 | 失败回退到 | 严重 |
 |:-----|:-----|:--------------|:---------|:-----------|:-----|
-| **G4.1** | Round 1 审计完成 | `ls docs/audit/goal-audit-round1-*.md 2>/dev/null \| wc -l` | ≥1 | Stage 5 跑 Round 1 | 阻断 |
+| **G4.1** | Round 1 审计完成 | `ls docs/loopforge/audit/goal-audit-round1-*.md 2>/dev/null \| wc -l` | ≥1 | Stage 5 跑 Round 1 | 阻断 |
 | **G4.2** | Round 1 P0/P1 全修复 | 见下方脚本（逐条比对 Round 1 的 P0/P1 编号 vs fixes 记录） | 未修复集合为空 | Stage 4 修复 | 阻断 |
-| **G4.3** | Round 2 无 P0/P1 | `awk '/\[AUDIT VERDICT\]/{f=1} f&&match($0,/P0: *[0-9]+/){p0=substr($0,RSTART+4,RLENGTH-4)+0;got=1} f&&match($0,/P1: *[0-9]+/){p1=substr($0,RSTART+4,RLENGTH-4)+0} END{if(!got) print "NOBLOCK"; else print p0+p1}' docs/audit/goal-audit-round2-*.md` | 输出 `0`（`NOBLOCK`=无法判定，非 PASS） | Stage 4 修复后重 Round 2 | 阻断 |
+| **G4.3** | Round 2 无 P0/P1 | `awk '/\[AUDIT VERDICT\]/{f=1} f&&match($0,/P0: *[0-9]+/){p0=substr($0,RSTART+4,RLENGTH-4)+0;got=1} f&&match($0,/P1: *[0-9]+/){p1=substr($0,RSTART+4,RLENGTH-4)+0} END{if(!got) print "NOBLOCK"; else print p0+p1}' docs/loopforge/audit/goal-audit-round2-*.md` | 输出 `0`（`NOBLOCK`=无法判定，非 PASS） | Stage 4 修复后重 Round 2 | 阻断 |
 
 **G4.2 判定脚本**（`ls` 只能判文件在不在，"修复记录完整"原本是人工判断）：
 
 ```bash
-ISSUES=$(grep -oE '\*\*(P0|P1)-[0-9]+' docs/audit/goal-audit-round1-*.md | grep -oE '(P0|P1)-[0-9]+' | sort -u)
-FIXED=$(grep -oE '(P0|P1)-[0-9]+' docs/audit/round1-fixes.md | sort -u)
+ISSUES=$(grep -oE '\*\*(P0|P1)-[0-9]+' docs/loopforge/audit/goal-audit-round1-*.md | grep -oE '(P0|P1)-[0-9]+' | sort -u)
+FIXED=$(grep -oE '(P0|P1)-[0-9]+' docs/loopforge/audit/round1-fixes.md | sort -u)
 comm -23 <(echo "$ISSUES") <(echo "$FIXED")     # 有输出 = 这些问题没有修复记录
 ```
 
@@ -231,7 +231,7 @@ comm -23 <(echo "$ISSUES") <(echo "$FIXED")     # 有输出 = 这些问题没有
 
 ```bash
 # 1. 先更新状态表（把编排自身的改动并入基线，不算到 agent 头上）
-#    写 docs/loop-status.md 的派工记录块
+#    写 docs/loopforge/loop-status.md 的派工记录块
 # 2. 打基线
 git add -A && git commit -q -m "pre-dispatch: <agent> round <N>"
 # 3. 再派 agent
@@ -251,7 +251,7 @@ git status --porcelain | cut -c4-     # 列出该 agent 的全部改动
 | 2 | **有 `.gitignore` 覆盖测试产物**（`__pycache__/` `*.pyc` `target/` `node_modules/` `.pytest_cache/`） | 跑一次测试即产生未忽略文件 → G5.3 恒判越权 → **活锁** |
 | 3 | **先记状态再打基线，最后派工**（顺序不可颠倒） | 主 Claude 的 loop-status 改动被算进 agent 越权 → **活锁** |
 
-> 用 `git status --porcelain` 而**不是** `git diff --name-only HEAD`：后者**看不见新建文件**（untracked），而"新建一个测试文件"恰是越权最自然的形态。实测：agent 新建 `tests/test_injected.py` 后 `git diff` 只列 `src/app.py`，G5.1 判 PASS 放行。
+> 用 `git status --porcelain` 而**不是** `git diff --name-only HEAD`：后者**看不见新建文件**（untracked），而"新建一个测试文件"恰是越权最自然的形态。实测：agent 新建 `loopforge-tests/test_injected.py` 后 `git diff` 只列 `src/app.py`，G5.1 判 PASS 放行。
 
 #### 路径变量（Stage 0 必填）
 
@@ -259,10 +259,10 @@ git status --porcelain | cut -c4-     # 列出该 agent 的全部改动
 
 ```bash
 IMPL_ROOT="src/"           # Maven: src/main/   Go: internal/,cmd/   Node: src/
-TEST_ROOT="tests/"         # Maven: src/test/   Go: *_test.go        Node: tests/
+TEST_ROOT="loopforge-tests/"  # Maven: src/test/   Go: *_test.go        Node: tests/
 ```
 
-> 🔴 **Maven/Gradle 用户必看**：Java 实现在 `src/main/java`、测试在 `src/test/java`，**都在 `src/` 下**。若沿用默认值，`impl-coder` 改测试断言凑绿时 `grep -c '^tests/'` 恒为 0 → **G5.1 永远绿灯**。失效方式是**静默放行，不是报错**——套件最核心的关卡变成摆设，而自校验照样全绿。
+> 🔴 **Maven/Gradle 用户必看**：Java 实现在 `src/main/java`、测试在 `src/test/java`，**都在 `src/` 下**。若沿用默认值，`impl-coder` 改测试断言凑绿时 `grep -c '^loopforge-tests/'` 恒为 0 → **G5.1 永远绿灯**。失效方式是**静默放行，不是报错**——套件最核心的关卡变成摆设，而自校验照样全绿。
 
 #### 门定义
 
@@ -271,17 +271,17 @@ TEST_ROOT="tests/"         # Maven: src/test/   Go: *_test.go        Node: tests
 | **G5.1** | impl-coder 未越权 | `git status --porcelain \| cut -c4- \| awk -v ok="$TEST_ROOT" 'index($0,ok)==1{print}' \| wc -l` | =0（派 impl-coder 时） | 回滚该 agent 改动 + 重派 test-author | 阻断 |
 | **G5.2** | test-author 未越权 | `git status --porcelain \| cut -c4- \| awk -v ok="$IMPL_ROOT" 'index($0,ok)==1{print}' \| wc -l` | =0（派 test-author 时） | 回滚 + 重派 impl-coder | 阻断 |
 | **G5.3** | test-runner 零改动 | `git status --porcelain \| wc -l` | =0（要求 .gitignore 已覆盖测试产物） | 回滚 + 排查 Bash 写入路径 | 阻断 |
-| **G5.4** | goal-auditor 只写 audit/ | `git status --porcelain \| cut -c4- \| grep -v '^docs/audit/' \| grep -v '^docs/loop-status.md$' \| wc -l` | =0（派 goal-auditor 时） | 回滚 + 审计作废重审 | 阻断 |
-| **G5.5** | design-author 只写 design/ | `git status --porcelain \| cut -c4- \| grep -v '^docs/design/' \| grep -v '^docs/loop-status.md$' \| wc -l` | =0（派 design-author 时） | 回滚 + 重派 | 阻断 |
+| **G5.4** | goal-auditor 只写 docs/loopforge/audit/ | `git status --porcelain \| cut -c4- \| grep -v '^docs/loopforge/audit/' \| grep -v '^docs/loopforge/loop-status.md$' \| wc -l` | =0（派 goal-auditor 时） | 回滚 + 审计作废重审 | 阻断 |
+| **G5.5** | design-author 只写 docs/loopforge/design/ | `git status --porcelain \| cut -c4- \| grep -v '^docs/loopforge/design/' \| grep -v '^docs/loopforge/loop-status.md$' \| wc -l` | =0（派 design-author 时） | 回滚 + 重派 | 阻断 |
 | **G5.6** | 改动落在派工允许范围内（**覆盖主 Claude 与 gate-checker 自身**） | 见下方脚本 | 无越界路径 | 记越权事件 + 作废本轮 | 阻断 |
 
 > **G5.1/G5.2 都用 awk 边界检查，不用 `grep -c "^$ROOT"`** —— 实跑发现 `grep -c "^src/"` 会把 `src_evil/x.py` 也算成 `src/` 下的合规路径（前缀重叠）。awk 版要求 `src/` 之后必须是路径分隔符 `/` 或行尾才算子路径。G5.4/G5.5 是白名单路径（保留路径之外都判越权），前缀重叠反倒是符合预期的行为 —— 不动它们。
 
 #### G5.6 自动判定（取代原"人工核对"）
 
-原判据字面写的是"人工核对"，却是阻断级、每阶段都跑 —— 等于每个阶段退出都卡一个人工门。改为读 `docs/loop-status.md` 的机读派工块自动判：
+原判据字面写的是"人工核对"，却是阻断级、每阶段都跑 —— 等于每个阶段退出都卡一个人工门。改为读 `docs/loopforge/loop-status.md` 的机读派工块自动判：
 
-`docs/loop-status.md` 必须含（主 Claude 在打基线**之前**写）：
+`docs/loopforge/loop-status.md` 必须含（主 Claude 在打基线**之前**写）：
 
 ```
 <!-- DISPATCH -->
@@ -302,7 +302,7 @@ git status --porcelain | cut -c4- | awk -v ok="${ALLOWED}" '
     rest = substr(p, length(ok)+1)
     if (rest != "" && rest !~ "/") print p " <-- PREFIX OVERLAP"
   } else { print p }
-}' | grep -v '^docs/loop-status.md$'
+}' | grep -v '^docs/loopforge/loop-status.md$'
 # 有输出 = 越权，输出即越界路径清单
 ```
 
@@ -347,7 +347,7 @@ diff /tmp/snap.pre /tmp/snap.post | grep '^[<>]' | awk '{print $NF}' | sort -u
 
 | 失败类型 | 含义 | 回退到 | 修复行动 |
 |:--|:--|:--|:--|
-| `[无法判定]` | 命令报错 / 文件缺失 / 输出为空但判据要求数值 | **Stage 0** | 修 `docs/goal.md` 该条判定命令；修完重跑本阶段判定 |
+| `[无法判定]` | 命令报错 / 文件缺失 / 输出为空但判据要求数值 | **Stage 0** | 修 `docs/loopforge/goal.md` 该条判定命令；修完重跑本阶段判定 |
 | `[门定义错误]` | 判定命令语法错、引用不存在的组件 | **Stage 0** | 同上。**这类必须修门，不是修产物**——重跑一万次 agent 也改变不了命令跑不动 |
 | `[需人工]` | 判据本身是价值判断（gate-checker 被禁止做判断） | **主 Claude 裁决** | 主 Claude 判定通过/不通过并记入 loop-status；连续 2 次拿不准 → 升级给人 |
 
@@ -381,7 +381,7 @@ diff /tmp/snap.pre /tmp/snap.post | grep '^[<>]' | awk '{print $NF}' | sort -u
 ### 参考实现骨架
 
 ```python
-# scripts/check_goal_gates.py —— 按你项目的 docs/goal.md 填 GATES
+# scripts/check_goal_gates.py —— 按你项目的 docs/loopforge/goal.md 填 GATES
 import subprocess, sys, shutil
 
 BASH = shutil.which("bash")   # 必须走 bash，见纪律 1
@@ -399,17 +399,17 @@ def check(gate_id, cmd, predicate, desc):
     print(f"  {'✅' if ok else '❌'} {gate_id} {desc}  [{out}]")
     return ok
 
-# 判据全部对照 docs/goal.md 的「通过判据」列，不要另写一套
+# 判据全部对照 docs/loopforge/goal.md 的「通过判据」列，不要另写一套
 GATES = [
     ("G0.1", """awk '/^## 维度 [1-6]/{d++;q[d]=0;next} /^- *Q[0-9]/{q[d]++} """
-              """END{for(i=1;i<=d;i++) if(q[i]==0) bad++; print d, bad+0}' docs/srs-raw/*-interrogation.md""",
+              """END{for(i=1;i<=d;i++) if(q[i]==0) bad++; print d, bad+0}' docs/loopforge/srs-raw/*-interrogation.md""",
      lambda o: o.split() == ["6", "0"], "6 维度齐且非空壳"),
 
-    ("G0.2", """grep -icE "待定|待确认|TBD|TODO|回头再说" docs/srs-raw/*-interrogation.md""",
+    ("G0.2", """grep -icE "待定|待确认|TBD|TODO|回头再说" docs/loopforge/srs-raw/*-interrogation.md""",
      lambda o: o == "0", "无未决项"),
 
     ("G1.1", """awk '/^### R-/{if(n)printf "%s:%d ",n,c; n=$2;c=0} """
-              """/\\*\\*(正常路径|边界条件|异常路径)\\*\\*/{c++} END{if(n)printf "%s:%d\\n",n,c}' docs/srs/*.md""",
+              """/\\*\\*(正常路径|边界条件|异常路径)\\*\\*/{c++} END{if(n)printf "%s:%d\\n",n,c}' docs/loopforge/srs/*.md""",
      lambda o: all(int(x.split(":")[1]) >= 3 for x in o.split()), "每条需求三层级齐"),
 
     ("G3.6", """awk '/KNOWN_FAILURES *=/{f=1} f&&/\\]/{f=0} f&&/["'"'"']/{n++} END{print n+0}' $RUNNER""",

@@ -9,10 +9,10 @@
 
 | 单需求假设 | 大型项目现实 | 后果 |
 |:--|:--|:--|
-| 一份 `docs/srs/<需求>.md` | 上百条需求，几十份文档 | SRS 无法单文件管理，编号会撞 |
+| 一份 `docs/loopforge/srs/<需求>.md` | 上百条需求，几十份文档 | SRS 无法单文件管理，编号会撞 |
 | 一次跑完 5 个 Stage | 需求分批交付，跨周跨月 | 没有"批次"概念，无法并行 |
 | 一个验证组一个 runner | 前后端/DB/基础设施多个子系统 | 单 runner 跑全量要几十分钟 |
-| `docs/loop-status.md` 一张表 | 多批次并行，状态互相覆盖 | 状态表打架 |
+| `docs/loopforge/loop-status.md` 一张表 | 多批次并行，状态互相覆盖 | 状态表打架 |
 | 上下文里记着当前进度 | 跨会话、跨人 | 上下文一丢全部重来 |
 | 交付一次就结束 | 持续迭代，需求会变 | 没有变更流程 |
 
@@ -35,7 +35,7 @@
 
 **批次 0 永远是契约**：API 签名 / 数据 schema / 错误码 / 模块边界。它先冻结，后面所有批次都不许改它——改了就是所有下游批次一起返工。
 
-### 2.2 批次表（放 `docs/batches.md`）
+### 2.2 批次表（放 `docs/loopforge/batches.md`）
 
 ```markdown
 | 批次 | 名称 | 验证组 runner | 需求范围 | 依赖批次 | 状态 |
@@ -68,7 +68,7 @@ R-900 ~ R-999   兼容 / 迁移
 
 TC 编号跟着走：`TC-R042-003` = R-042 的第 3 个测试用例。
 
-**SRS 拆分**：一个批次一份 SRS，`docs/srs/batch-<X>-<名称>.md`。加一份 `docs/srs/README.md` 做索引（哪个批次覆盖哪些 R 号）。
+**SRS 拆分**：一个批次一份 SRS，`docs/loopforge/srs/batch-<X>-<名称>.md`。加一份 `docs/loopforge/srs/README.md` 做索引（哪个批次覆盖哪些 R 号）。
 
 ---
 
@@ -92,7 +92,7 @@ docs/
 ```bash
 git status --porcelain | cut -c4- \
   | awk -v ok="$ALLOWED" 'index($0,ok)!=1{print}' \
-  | grep -v "^docs/loop-status/batch-${BATCH}\.md$"
+  | grep -v "^docs/loopforge/loop-status/batch-${BATCH}\.md$"
 ```
 
 ---
@@ -164,7 +164,7 @@ G0.4（新增）| 契约未破坏 | $CONTRACT_CMD; echo $? | =0 | 停止，回�
    - 必须人工评审批准，不能自动流程推进
 ```
 
-**记在 `docs/change-log.md`**：
+**记在 `docs/loopforge/change-log.md`**：
 
 ```markdown
 | 日期 | 变更 | 影响批次 | 处置 | 批准人 |
@@ -181,10 +181,10 @@ G0.4（新增）| 契约未破坏 | $CONTRACT_CMD; echo $? | =0 | 停止，回�
 新会话开始时，主 Claude 按顺序读：
 
 ```
-1. docs/batches.md          → 现在做到哪个批次
-2. docs/loop-status/batch-<当前>.md → 该批次卡在哪个 Stage、哪个门、第几轮
-3. docs/goal.md             → 门的定义（可能被裁剪过）
-4. docs/change-log.md       → 有没有未处理的变更
+1. docs/loopforge/batches.md          → 现在做到哪个批次
+2. docs/loopforge/loop-status/batch-<当前>.md → 该批次卡在哪个 Stage、哪个门、第几轮
+3. docs/loopforge/goal.md             → 门的定义（可能被裁剪过）
+4. docs/loopforge/change-log.md       → 有没有未处理的变更
 ```
 
 **这四份文件是唯一事实来源。** 主 Claude 说"我记得上次..."一律不作数。
@@ -234,7 +234,7 @@ Stage 开始前：我读过这四份文件了吗？还是在凭上下文里的�
 
 | 保留 | 可省 |
 |:--|:--|
-| `docs/goal.md`（哪怕只有 5 条门） | Stage 1 拷问（已有 PRD 时跳过） |
+| `docs/loopforge/goal.md`（哪怕只有 5 条门） | Stage 1 拷问（已有 PRD 时跳过） |
 | test-author / test-runner / impl-coder 三分离 | G2.x 全族（设计质量交给自查） |
 | G5.1 + G5.2 越权检测 | Round 2（Round 1 有 P0 才跑第二轮） |
 | Stage 5 单轮审计 | 每阶段的 gate-checker（改为主 Claude 读自查报告） |
@@ -255,15 +255,15 @@ Stage 开始前：我读过这四份文件了吗？还是在凭上下文里的�
     全局: bash scripts/install.sh  然后每项目 bash <套件>/scripts/loopforge-init.sh
     本地: bash <套件>/scripts/loopforge-init.sh --local
 □ 跑 bash scripts/preflight.sh      ← 环境自检，0 阻断项才继续
-□ /loopforge <你的模糊需求>              ← 首跑自动建 docs/ 并从 <SKILL_DOCS>/goal-template.md
-                                       复制出 docs/goal.md，不用手工 cp
+□ /loopforge <你的模糊需求>              ← 首跑自动建 docs/loopforge/ 并从 <SKILL_DOCS>/goal-template.md
+                                       复制出 docs/loopforge/goal.md，不用手工 cp
 □ 填 goal.md 的 IMPL_ROOT / TEST_ROOT / TEST_CMD / RUNNER / TYPE_CMD
 □ 裁剪 goal.md 的门（删不适用的，加项目专属的）
 □ 加 G0.4 契约门 + G3.7 跨批回归门（多批次必加）
-□ 写 docs/batches.md 批次表 + 依赖关系
+□ 写 docs/loopforge/batches.md 批次表 + 依赖关系
 □ 确认 .gitignore 覆盖测试产物
 □ Windows: git config core.autocrlf false（否则 G5.x 被换行符干扰）
-□ 建 docs/loop-status/ 目录
+□ 建 docs/loopforge/loop-status/ 目录
 □ 跑批次 0（契约）→ 冻结
 □ 按依赖顺序跑后续批次
 ```

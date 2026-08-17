@@ -30,9 +30,9 @@
 
 | 检查 | 缺失时动作 |
 |:--|:--|
-| `docs/` 目录 | `mkdir -p docs` |
-| `docs/goal.md` | 从全局 skill 目录复制 `goal-template.md` |
-| `docs/goal-doc.md` | 创建占位（内容由 goal-architect 填） |
+| `docs/loopforge/` 目录 | `mkdir -p docs/loopforge` |
+| `docs/loopforge/goal.md` | 从全局 skill 目录复制 `goal-template.md` |
+| `docs/loopforge/goal-doc.md` | 创建占位（内容由 goal-architect 填） |
 | git 仓库 | 警告"G5.x 越权检测失效"，不自动 init（用户决定） |
 | `.gitignore` | 创建含测试产物模式的初始版 |
 
@@ -99,10 +99,10 @@
 ### 恢复读取顺序（四份文件）
 
 ```
-1. docs/goal-doc.md     项目目标（做什么）
-2. docs/goal.md         门定义（怎么算完成）
-3. docs/loop-status.md  当前进度（卡在哪）
-4. docs/change-log.md   变更记录（多批次时）
+1. docs/loopforge/goal-doc.md     项目目标（做什么）
+2. docs/loopforge/goal.md         门定义（怎么算完成）
+3. docs/loopforge/loop-status.md  当前进度（卡在哪）
+4. docs/loopforge/change-log.md   变更记录（多批次时）
 ```
 
 缺任何一份：如实报缺哪份 + 询问用户是否继续（goal-doc 缺失时**禁止**继续编排——没有目标的 Loop 是空转）。
@@ -143,7 +143,7 @@
 |:--|:--|
 | 标记 loop-status.md | 删除任何文件 |
 | 停止编排 | 回滚 git |
-| 保留 src/ tests/ docs/ 全部 | 清理 agent 产物 |
+| 保留 src/ loopforge-tests/ docs/ 全部 | 清理 agent 产物 |
 
 取消是可逆的：`/loopforge-resume` 会询问是否重新激活。
 
@@ -171,7 +171,7 @@
 ```
 ~/.claude/skills/ + ~/.claude/agents/     ← 全局能力（install.sh 装）
 <project>/.claude/commands/loopforge*.md       ← 命令入口（loopforge-init.sh 装）
-<project>/docs/goal*.md + loop-status.md  ← 项目数据（/loopforge 首跑建）
+<project>/docs/loopforge/goal*.md + loop-status.md  ← 项目数据（/loopforge 首跑建）
 ```
 
 命令文件只是入口薄层——真正编排在 SKILL.md，能力在 agents，状态在 docs/。

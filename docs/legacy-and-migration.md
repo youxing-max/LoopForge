@@ -43,13 +43,13 @@ Stage 1 拷问 → Stage 2 SRS → Stage 3 设计 → Stage 4 Loop → Stage 5 �
 | 设计文档缺接口签名 | 写完就进 Stage 4 | 门 G2.5 判定 → 回 Stage 3 |
 | 测试覆盖率不足 | 测试全绿就进 Stage 5 | 门判定 → 回 Stage 4 |
 
-**v2.0 修法**：加 Stage 0 定义统一 Goal 门集合（`docs/goal.md`），每阶段退出**强制**跑门判定，不过按回退映射表跳转。判据从"散在各阶段"改为"集中单一 home"。
+**v2.0 修法**：加 Stage 0 定义统一 Goal 门集合（`docs/loopforge/goal.md`），每阶段退出**强制**跑门判定，不过按回退映射表跳转。判据从"散在各阶段"改为"集中单一 home"。
 
 ### 缺陷 2：Goal 门没有单一 home
 
 **当时**：判据散落在 SKILL.md 各阶段的"退出判据"小节 + 各 agent 文档的"退出判据"小节。同一条判据可能在两处写得不一致。
 
-**v2.0 修法**：全部收进 `docs/goal.md`，每条门四字段固定：`自动判定命令` / `通过判据` / `失败回退到` / `严重级`。SKILL.md 和 agent 文档只引用不复述。
+**v2.0 修法**：全部收进 `docs/loopforge/goal.md`，每条门四字段固定：`自动判定命令` / `通过判据` / `失败回退到` / `严重级`。SKILL.md 和 agent 文档只引用不复述。
 
 ---
 
@@ -63,7 +63,7 @@ Stage 1 拷问 → Stage 2 SRS → Stage 3 设计 → Stage 4 Loop → Stage 5 �
 
 ```
 loop-driver agent 的工作流程：
-  Step 1: 调 develop-tests skill  → 生成 tests/test_R*.py
+  Step 1: 调 develop-tests skill  → 生成 loopforge-tests/test_R*.py
   Step 2: 调 phase-verify skill   → 跑测试
   Step 3: 判定结果 → 有缺口就上报
 ```
@@ -90,7 +90,7 @@ Stage 4 改由主 Claude 编排三方交替。
 
 **为什么是问题**：主 Claude 的上下文里塞满了需求、设计、拷问答卷、历次修复记录。这是全场信息最多的角色——也是最容易产生"我知道这里其实没问题"的角色。让它动手改代码，等于让信息最脏的上下文做最需要客观性的事。
 
-**v2.1 修法**：主 Claude 收权为**纯编排**——只做路由判断（这个缺口该派谁修），不 Edit `src/` `tests/`，不跑 pytest。
+**v2.1 修法**：主 Claude 收权为**纯编排**——只做路由判断（这个缺口该派谁修），不 Edit `src/` `loopforge-tests/`，不跑 pytest。
 
 ### 违规 3：`goal-auditor` 兼任自检与终审 🔴
 
@@ -126,7 +126,7 @@ Stage 4 改由主 Claude 编排三方交替。
 | L3 | agent 文档红线条款 | 软 | agent 不遵守就失效 |
 | L4 | `gate-checker` G5.x git diff 事后检测 | 硬（事后） | **唯一不依赖自觉的关卡** |
 
-**L4 不能省**。L1 管得住"有没有这个工具"，管不住"写到哪个目录"——`impl-coder` 有 Write，理论上能写 `tests/`。挡住它的是 L3 的红线条款（软）+ L4 的事后检测（硬）。
+**L4 不能省**。L1 管得住"有没有这个工具"，管不住"写到哪个目录"——`impl-coder` 有 Write，理论上能写 `loopforge-tests/`。挡住它的是 L3 的红线条款（软）+ L4 的事后检测（硬）。
 
 ### 权限不变式（可自动验证）
 
@@ -156,7 +156,7 @@ Stage 4 改由主 Claude 编排三方交替。
 | 4 | **加** `tools:` 到 `req-interrogator` `srs-drafter` 的 frontmatter |
 | 5 | **换** `SKILL.md`（Stage 3/4 编排全改） |
 | 6 | **加** `docs/role-permission-matrix.md` |
-| 7 | **加** `docs/goal.md` 的 G5.1~G5.6 越权检测门 |
+| 7 | **加** `docs/loopforge/goal.md` 的 G5.1~G5.6 越权检测门 |
 | 8 | **跑** `python scripts/validate_suite.py` 确认 74 项全绿 |
 
 **进行中的项目怎么办**：Stage 0~3 的产物（goal.md / 拷问清单 / SRS / 设计文档）可直接复用。Stage 4 若已开始，建议重跑一轮 `test-runner` 拿干净的事实报告，再按新编排继续——旧的验收报告可能被"写测试的自己跑"污染过。

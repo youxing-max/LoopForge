@@ -98,5 +98,3 @@ for f in "$SRC"/commands/loopforge*.md; do
 done
 echo ""
 echo "开始: /loopforge <你的模糊需求>"
-echo ""
-echo "开始: /loopforge <你的模糊需求>"

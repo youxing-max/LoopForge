@@ -36,19 +36,19 @@
 | **审计员** | `goal-auditor` | ❌ | ❌ | ❌ **报告走返回值**³ | ❌ | ❌ | ✅ |
 
 **¹ 主 Claude 的例外（原表写全 ❌，与流程要求直接矛盾）**：
-流程强制要求主 Claude 做四件需要写/执行的事——维护 `docs/loop-status.md`、维护 `docs/goal.md`、给 `goal-auditor` 的报告落盘到 `docs/audit/`、打 git 基线。原矩阵把它标成全 ❌，等于**契约上无人可写状态表**，防死循环计数器、越权台账、审计报告全部无处存放。
+流程强制要求主 Claude 做四件需要写/执行的事——维护 `docs/loopforge/loop-status.md`、维护 `docs/loopforge/goal.md`、给 `goal-auditor` 的报告落盘到 `docs/loopforge/audit/`、打 git 基线。原矩阵把它标成全 ❌，等于**契约上无人可写状态表**，防死循环计数器、越权台账、审计报告全部无处存放。
 
 主 Claude 的真实权限边界：
 
 | 允许 | 禁止 |
 |:--|:--|
-| 写 `docs/loop-status.md` `docs/goal.md` `docs/audit/**` | 写 `$IMPL_ROOT` `$TEST_ROOT` 下任何文件 |
+| 写 `docs/loopforge/loop-status.md` `docs/loopforge/goal.md` `docs/loopforge/audit/**` | 写 `$IMPL_ROOT` `$TEST_ROOT` 下任何文件 |
 | 跑 `git add/commit/status/diff/log`（基线协议） | 跑测试、跑构建、跑类型检查 |
 | 调 Agent / Skill / 读全仓 | 自己下"这代码没问题"的结论 |
 
 **² `test-runner` / `gate-checker` 的报告不落盘**：它们的 `tools:` 里没有 Write。报告通过**返回值**传给主 Claude。原矩阵标"✅ 报告"与它们各自文档的红线条款（"禁止写任何文件"）直接冲突。
 
-**³ `goal-auditor` 同理**：它只有 `Read, Grep, Glob`。审计报告内容由它返回，**由主 Claude 落盘**到 `docs/audit/`。这是它没有 Write 却能产出报告文件的唯一路径。
+**³ `goal-auditor` 同理**：它只有 `Read, Grep, Glob`。审计报告内容由它返回，**由主 Claude 落盘**到 `docs/loopforge/audit/`。这是它没有 Write 却能产出报告文件的唯一路径。
 
 **读权限**：全角色可读全仓（审计需要看全貌）。隔离的是**写**和**执行**。
 
@@ -104,18 +104,18 @@
 **第一层：prompt 硬规则**（每个 agent 文档里写死）
 
 ```
-impl-coder:   只允许写 src/**。碰 tests/** 立即停止并报告越权。
-test-author:  只允许写 tests/** + docs/verification/testplan-*.md。碰 src/** 立即停止。
+impl-coder:   只允许写 src/**。碰 loopforge-tests/** 立即停止并报告越权。
+test-author:  只允许写 loopforge-tests/** + docs/loopforge/verification/testplan-*.md。碰 src/** 立即停止。
 test-runner:  不允许写任何文件（报告用返回值传出，不落盘）。
 ```
 
 **第二层：事后 git 检测**（Goal 门 G5.x，见 `goal-template.md`）
 
 ```bash
-# 修复轮（impl-coder 跑完）后检查：只动了 src/，没动 tests/
-git diff --name-only HEAD | grep -q '^tests/' && echo "🔴 越权：修复轮动了测试文件"
+# 修复轮（impl-coder 跑完）后检查：只动了 src/，没动 loopforge-tests/
+git diff --name-only HEAD | grep -q '^loopforge-tests/' && echo "🔴 越权：修复轮动了测试文件"
 
-# 测试生成轮（test-author 跑完）后检查：只动了 tests/，没动 src/
+# 测试生成轮（test-author 跑完）后检查：只动了 loopforge-tests/，没动 src/
 git diff --name-only HEAD | grep -q '^src/' && echo "🔴 越权：测试轮动了实现代码"
 ```
 
@@ -144,13 +144,13 @@ git diff --name-only HEAD | grep -q '^src/' && echo "🔴 越权：测试轮动�
 ```
 Stage 4 内循环（主 Claude 编排，自己不写代码）
 
-  [1] test-author      写测试 → tests/test_R*.py + run_<组>.py
+  [1] test-author      写测试 → loopforge-tests/test_R*.py + run_<组>.py
        ↓ (无 Bash，交不出运行结果)
   [2] test-runner      跑测试 → 事实报告（PASS/FAIL/GAP/skip/弱断言）
        ↓ (无 Edit，改不了任何东西)
   [3] 主 Claude 读报告 → 判定是缺实现还是缺测试
        ├── 缺实现 → [4] impl-coder 改 src/ → 回 [2]
-       └── 缺测试/断言弱 → 回 [1] test-author 改 tests/ → 回 [2]
+       └── 缺测试/断言弱 → 回 [1] test-author 改 loopforge-tests/ → 回 [2]
        ↓ 全绿
   [5] gate-checker     跑 G3.x 判定命令 → 门报告
        ↓ 不过 → 回 [3]
@@ -161,7 +161,7 @@ Stage 4 内循环（主 Claude 编排，自己不写代码）
 - `test-author` 想让测试变绿？它没 Bash，看不到红绿。
 - `impl-coder` 想改测试凑绿？它写 test 目录会被 G5.x git 检测抓到，且 prompt 硬规则要求它自停。
 - `test-runner` 想"顺手修一下"？没有 Edit/Write —— **但它有 Bash，能用 `>` 写文件**（见 §3 的 Bash ⊇ Write）。真防线是 G5.3。
-- `gate-checker` 想放水？判定命令写死在 `docs/goal.md`。**但它有 Bash，能改 goal.md** —— `settings.json` 的 `ask` 规则绑的是 Edit/Write 工具，走 Bash 不触发。真防线是把 `docs/goal.md` 纳入 G5.x 的越权路径检测。
+- `gate-checker` 想放水？判定命令写死在 `docs/loopforge/goal.md`。**但它有 Bash，能改 goal.md** —— `settings.json` 的 `ask` 规则绑的是 Edit/Write 工具，走 Bash 不触发。真防线是把 `docs/loopforge/goal.md` 纳入 G5.x 的越权路径检测。
 
 ---
 
@@ -172,7 +172,7 @@ Stage 4 内循环（主 Claude 编排，自己不写代码）
 - ✅ 读任何文件（判断该派谁）
 - ✅ 调 Agent / Skill
 - ✅ 读 agent 返回的报告并决策路由
-- ✅ 写 `docs/loop-status.md` `docs/goal.md` `docs/audit/**`（编排状态与报告落盘）
+- ✅ 写 `docs/loopforge/loop-status.md` `docs/loopforge/goal.md` `docs/loopforge/audit/**`（编排状态与报告落盘）
 - ✅ 跑 `git add/commit/status/diff/log`（派工基线协议）
 
 它**不可以**：
@@ -215,7 +215,7 @@ G5.6 原判据字面写的是"人工核对"却是阻断级、每阶段都跑，�
 - [ ] `goal-auditor` 这轮被调用过 Bash 吗？（应该完全没有——它没这工具）
 - [ ] 派工前打过基线吗？（先写 loop-status → `git add -A && git commit` → 再派工）
 
-任一项否 → 记为越权事件，写入 `docs/loop-status.md`，本轮结果作废重跑。
+任一项否 → 记为越权事件，写入 `docs/loopforge/loop-status.md`，本轮结果作废重跑。
 
 > 用 `git status --porcelain` 不用 `git diff --name-only HEAD`：后者**看不见新建文件**，而"新建一个测试文件"是越权最自然的形态。
 
@@ -231,6 +231,6 @@ G5.6 原判据字面写的是"人工核对"却是阻断级、每阶段都跑，�
 | settings.json `permissions.deny` | 硬但全局 | 见 `settings-permissions.json`，配合会话切换 |
 | prompt 硬规则 + 自停 | 软 | 每个 agent 文档首段写死红线 |
 | git diff 事后检测 | 硬（事后） | G5.x 门，越权即作废重跑 |
-| 人工 review 派工记录 | 软 | `docs/loop-status.md` 记录每轮谁干的 |
+| 人工 review 派工记录 | 软 | `docs/loopforge/loop-status.md` 记录每轮谁干的 |
 
 **最低要求**：即使全软，也必须有 **git diff 事后检测**——这是唯一不依赖 agent 自觉的关卡。

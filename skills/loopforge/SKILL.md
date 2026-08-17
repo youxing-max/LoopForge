@@ -16,7 +16,7 @@ user-invocable: true
 | 类别 | 位置 | 含哪些 | 谁写 |
 |:--|:--|:--|:--|
 | **套件文档**（只读模板/规范） | `<SKILL_DOCS>` = 本 SKILL.md 同级的 `docs/` | goal-template · goal-doc-template · role-permission-matrix · commands-spec · loop-status-spec · large-project-guide | 套件自带，永不修改 |
-| **项目文档**（本项目的状态/产物） | `<项目根>/docs/` | goal.md · goal-doc.md · loop-status.md · srs/ · design/ · audit/ · change-log.md | Loop 运行时生成 |
+| **项目文档**（本项目的状态/产物） | `<项目根>/docs/loopforge/` | goal.md · goal-doc.md · loop-status.md · srs/ · design/ · audit/ · srs-raw/ · verification/ · change-log.md | Loop 运行时生成，不污染用户项目根 `docs/` |
 
 `<SKILL_DOCS>` 的解析顺序：
 
@@ -30,8 +30,8 @@ user-invocable: true
 > `%USERPROFILE%\.claude\skills\loopforge\docs\`。两者指向同一目录，
 > 用哪种写法取决于你当前的 shell。**不要用 `~`** —— 部分调用方不展开它。
 
-> **为什么要写死这条**：全局模式下 skill 在 `~/.claude/`，而 `docs/goal.md` 在用户项目里。
-> 只写"读 `docs/goal-template.md`"会去项目目录找模板 —— 找不到，agent 就自己编一份，
+> **为什么要写死这条**：全局模式下 skill 在 `~/.claude/`，而项目产出文档在 `<项目>/docs/loopforge/`。
+> 只写"读 `goal-template.md`"会去项目目录找模板 —— 找不到，agent 就自己编一份，
 > 门判据全走样且没人发现。
 
 ## 部署模式
@@ -45,7 +45,7 @@ user-invocable: true
 
 两种模式下 `/loopforge` 命令都装在 `<项目>/.claude/commands/`（不放全局，避免覆盖 Claude Code 原生命令）。
 
-`/loopforge` 首跑时若 `<项目>/docs/goal.md` 不存在，从 `<SKILL_DOCS>/goal-template.md` 复制初始化（详见 `commands/loopforge.md`）。
+`/loopforge` 首跑时若 `<项目>/docs/loopforge/goal.md` 不存在，从 `<SKILL_DOCS>/goal-template.md` 复制初始化（详见 `commands/loopforge.md`）。所有 loopforge 产出文档统一落在 `<项目>/docs/loopforge/`，不污染用户项目根 `docs/`。
 
 ## 四条铁律
 
@@ -60,11 +60,11 @@ user-invocable: true
 
 | 角色 | Agent | 工具白名单 | 能写 | 能跑 |
 |:--|:--|:--|:--|:--|
-| 编排者 | **主 Claude** | Agent, Skill, Read, Write, Bash | 仅 `docs/loop-status.md` `docs/goal.md` `docs/goal-doc.md` `docs/audit/**` | 仅 git 基线命令 |
-| **目标架构** | `goal-architect` | Read Write Grep Glob | **`docs/goal-doc*.md` only** | ❌ |
-| 拷问 | `req-interrogator` | Read Write Grep Glob | `docs/srs-raw/` | ❌ |
-| SRS | `srs-drafter` | Read Write Grep Glob | `docs/srs/` | ❌ |
-| 设计 | `design-author` | Read Write Grep Glob | `docs/design/` | ❌ |
+| 编排者 | **主 Claude** | Agent, Skill, Read, Write, Bash | 仅 `docs/loopforge/loop-status.md` `docs/loopforge/goal.md` `docs/loopforge/goal-doc.md` `docs/loopforge/audit/**` | 仅 git 基线命令 |
+| **目标架构** | `goal-architect` | Read Write Grep Glob | **`docs/loopforge/goal-doc*.md` only** | ❌ |
+| 拷问 | `req-interrogator` | Read Write Grep Glob | `docs/loopforge/srs-raw/` | ❌ |
+| SRS | `srs-drafter` | Read Write Grep Glob | `docs/loopforge/srs/` | ❌ |
+| 设计 | `design-author` | Read Write Grep Glob | `docs/loopforge/design/` | ❌ |
 | **实现** | `impl-coder` | Read Edit Write Grep Glob | **`$IMPL_ROOT` only** | **❌ 无 Bash** |
 | **测试开发** | `test-author` | Read Edit Write Grep Glob | **`$TEST_ROOT` only** | **❌ 无 Bash** |
 | **测试执行** | `test-runner` | Read **Bash** Grep Glob | ❌ 报告走返回值 | ✅ |
@@ -89,9 +89,9 @@ user-invocable: true
 ## 二、流程总览（6 阶段 + 回退环）
 
 ```
-Stage 0    定 Goal 门         主 Claude + 用户 → docs/goal.md
+Stage 0    定 Goal 门         主 Claude + 用户 → docs/loopforge/goal.md
    ↓
-Stage 0.5  项目目标书          goal-architect ↔ 用户（多轮 Q&A） → docs/goal-doc.md
+Stage 0.5  项目目标书          goal-architect ↔ 用户（多轮 Q&A） → docs/loopforge/goal-doc.md
    ↓ gate-checker 判 G0.5 ──不过──> 回 Stage 0.5
 Stage 1    拷问               req-interrogator
    ↓ gate-checker 判 G0.x ──不过──> 回 Stage 1
@@ -120,9 +120,9 @@ Stage 5    双轮独立审计       goal-auditor ×2（Round 2 禁读 Round 1）
 > 否则后面所有阶段都在没有门定义的情况下空转。
 
 ```bash
-mkdir -p docs
-test -f docs/goal.md     || cp <SKILL_DOCS>/goal-template.md docs/goal.md
-test -f docs/goal-doc.md || echo "(待 goal-architect 填)" > docs/goal-doc.md
+mkdir -p docs/loopforge
+test -f docs/loopforge/goal.md     || cp <SKILL_DOCS>/goal-template.md docs/loopforge/goal.md
+test -f docs/loopforge/goal-doc.md || echo "(待 goal-architect 填)" > docs/loopforge/goal-doc.md
 git rev-parse --git-dir >/dev/null 2>&1 || echo "⚠️ 非 git 仓库 → G5.x 越权检测全族失效"
 test -f .gitignore || printf '__pycache__/\n*.pyc\ntarget/\nnode_modules/\n.pytest_cache/\n' > .gitignore
 ```
@@ -131,13 +131,13 @@ test -f .gitignore || printf '__pycache__/\n*.pyc\ntarget/\nnode_modules/\n.pyte
 
 ### 3.1 裁剪门清单
 
-1. 主 Claude 与用户逐条裁剪 `docs/goal.md`：
+1. 主 Claude 与用户逐条裁剪 `docs/loopforge/goal.md`：
    - 删不适用的门（非物理项目删物理可信度门）
    - 判定命令改成本项目真实路径（`IMPL_ROOT` / `TEST_ROOT` / `TEST_CMD` / `RUNNER` / `TYPE_CMD`）
    - 加项目专属门（Web：API 契约/SLA 压测；数据：血缘/幂等；嵌入式：ROM/RAM）
 2. 确认回退映射表 + **G5.x 角色越权检测门必须保留**
 
-**退出**：`docs/goal.md` 存在 + 每条门四字段齐 + 用户确认"这就是完成的定义"。
+**退出**：`docs/loopforge/goal.md` 存在 + 每条门四字段齐 + 用户确认"这就是完成的定义"。
 
 ---
 
@@ -147,7 +147,7 @@ test -f .gitignore || printf '__pycache__/\n*.pyc\ntarget/\nnode_modules/\n.pyte
 但**项目本身的分解**（子系统、批次、技术栈、不变约束、范围外）必须先和用户对齐。
 否则 Stage 1 拷问官会对着"做一个微信"这种模糊目标拷问出一堆不一致的拷问清单。
 
-**产物**：`docs/goal-doc.md`（用 `<SKILL_DOCS>/goal-doc-template.md` 填）
+**产物**：`docs/loopforge/goal-doc.md`（用 `<SKILL_DOCS>/goal-doc-template.md` 填）
 
 **关键纪律**：
 - 这是 Loop 中**唯一**直接面对用户的阶段 —— `goal-architect` 的问题就是用户审的入口
@@ -160,7 +160,7 @@ test -f .gitignore || printf '__pycache__/\n*.pyc\ntarget/\nnode_modules/\n.pyte
 # 初版
 Agent(
     description="起项目目标书",
-    prompt="读 <SKILL_DOCS>/goal-doc-template.md。用户输入：<原始想法 + 背景>。按模板写 docs/goal-doc.md 初版（允许 [待确认] 标记）。返回 [WAITING FOR USER] 段含必答清单。",
+    prompt="读 <SKILL_DOCS>/goal-doc-template.md。用户输入：<原始想法 + 背景>。按模板写 docs/loopforge/goal-doc.md 初版（允许 [待确认] 标记）。返回 [WAITING FOR USER] 段含必答清单。",
     subagent_type="goal-architect"
 )
 # → 主 Claude 收到 [WAITING FOR USER] 后**直接呈现给用户**，让用户回答
@@ -168,7 +168,7 @@ Agent(
 # 修订轮
 Agent(
     description="改项目目标书",
-    prompt="读 docs/goal-doc.md + 用户最新回答。仅修改与回答相关的章节，重新计算 [待确认] 标记数，返回新的 [WAITING FOR USER]。",
+    prompt="读 docs/loopforge/goal-doc.md + 用户最新回答。仅修改与回答相关的章节，重新计算 [待确认] 标记数，返回新的 [WAITING FOR USER]。",
     subagent_type="goal-architect"
 )
 ```
@@ -193,7 +193,7 @@ Agent(
 # [1] 草稿轮：req-interrogator 产出含推荐默认值的待答问卷
 Agent(
     description="拷问模糊需求（草稿）",
-    prompt="读 docs/goal.md 的 G0.x 门 + docs/goal-doc.md 判项目类型。对以下模糊需求做 6 维度拷问，每维度加 [推荐默认值] 行，产出 docs/srs-raw/<需求名>-interrogation.md。回填状态=待用户答卷。返回 [WAITING FOR USER] 段含：（a）全面拷问（逐 Q 答）vs 接受推荐默认值的选择；（b）各维度推荐默认值摘要。原始需求：<...>",
+    prompt="读 docs/loopforge/goal.md 的 G0.x 门 + docs/loopforge/goal-doc.md 判项目类型。对以下模糊需求做 6 维度拷问，每维度加 [推荐默认值] 行，产出 docs/loopforge/srs-raw/<需求名>-interrogation.md。回填状态=待用户答卷。返回 [WAITING FOR USER] 段含：（a）全面拷问（逐 Q 答）vs 接受推荐默认值的选择；（b）各维度推荐默认值摘要。原始需求：<...>",
     subagent_type="req-interrogator"
 )
 # → 主 Claude 收到 [WAITING FOR USER] 后直接呈现给用户：
@@ -205,7 +205,7 @@ Agent(
 # [2] 修订轮：req-interrogator 回填用户答卷
 Agent(
     description="回填拷问答卷",
-    prompt="读 docs/srs-raw/<需求名>-interrogation.md + 用户最新答卷。按答案回填每个 Q 的'用户的回答'列，接受默认值的填'接受推荐默认值'。冲突表裁决列填用户裁决。回填状态=全部回填。返回更新后的路径。",
+    prompt="读 docs/loopforge/srs-raw/<需求名>-interrogation.md + 用户最新答卷。按答案回填每个 Q 的'用户的回答'列，接受默认值的填'接受推荐默认值'。冲突表裁决列填用户裁决。回填状态=全部回填。返回更新后的路径。",
     subagent_type="req-interrogator"
 )
 ```
@@ -224,7 +224,7 @@ Agent(
 ```
 Agent(
     description="Stage 1 门判定",
-    prompt="gate-checker：读 docs/goal.md，跑 stage=1 的全部门（G0.1~G0.4）+ 角色越权检测。输出 PASS/FAIL + 回退建议。",
+    prompt="gate-checker：读 docs/loopforge/goal.md，跑 stage=1 的全部门（G0.1~G0.4）+ 角色越权检测。输出 PASS/FAIL + 回退建议。",
     subagent_type="gate-checker"
 )
 ```
@@ -238,7 +238,7 @@ Agent(
 ```
 Agent(
     description="起草 SRS",
-    prompt="读 docs/goal.md 的 G1.x 门 + docs/srs-raw/<需求名>-interrogation.md（含答卷），产出 docs/srs/<需求名>.md。你只能写 docs/srs/。",
+    prompt="读 docs/loopforge/goal.md 的 G1.x 门 + docs/loopforge/srs-raw/<需求名>-interrogation.md（含答卷），产出 docs/loopforge/srs/<需求名>.md。你只能写 docs/loopforge/srs/。",
     subagent_type="srs-drafter"
 )
 ```
@@ -252,7 +252,7 @@ Agent(
 ```
 Agent(
     description="写设计文档",
-    prompt="读 docs/srs/<需求名>.md，产出 docs/design/<需求名>.md。你只能写 docs/design/。SRS 未定义的点不要自己发明，返回 [需求缺口]。",
+    prompt="读 docs/loopforge/srs/<需求名>.md，产出 docs/loopforge/design/<需求名>.md。你只能写 docs/loopforge/design/。SRS 未定义的点不要自己发明，返回 [需求缺口]。",
     subagent_type="design-author"
 )
 ```
@@ -268,13 +268,13 @@ Agent(
 **主 Claude 编排三个 agent 交替，自己不写不跑**：
 
 ```
-  [1] test-author   写测试 → tests/test_R*.py + run_<组>.py + testplan
+  [1] test-author   写测试 → loopforge-tests/test_R*.py + run_<组>.py + testplan
        ↓ （无 Bash，交不出运行结果）
   [2] test-runner   跑测试 → 事实报告（PASS/FAIL/GAP/skip/弱断言）
        ↓ （无 Edit/Write，改不了任何东西）
   [3] 主 Claude 读事实报告 → 只做路由判断
        ├── [GAP]/[FAIL] 缺实现  → [4] impl-coder 改 src/ → 回 [2]
-       ├── 弱断言/可疑 skip     → 回 [1] test-author 改 tests/ → 回 [2]
+       ├── 弱断言/可疑 skip     → 回 [1] test-author 改 loopforge-tests/ → 回 [2]
        └── 全绿                 → [5]
   [5] gate-checker  跑 G3.x + 越权检测
        ↓ 不过 → 回 [3] ；全过 → 出 Stage 4
@@ -286,7 +286,7 @@ Agent(
 
 ```bash
 # ── 派工前（主 Claude 做）──
-# 1. 先写 docs/loop-status.md 的机读派工块：
+# 1. 先写 docs/loopforge/loop-status.md 的机读派工块：
 #    <!-- DISPATCH -->
 #    round: 4-3
 #    agent: impl-coder
@@ -301,7 +301,7 @@ git add -A && git commit -q -m "pre-dispatch: impl-coder round 4-3"
 # [1] 测试开发
 Agent(
     description="生成测试",
-    prompt="读 docs/srs/<需求名>.md + docs/design/<需求名>.md，为验证组 <组> 生成 testplan + 测试代码 + runner。你只能写 $TEST_ROOT 和 docs/verification/。功能未实现 → 写会 FAIL 的断言，不许 skip，不许登记进 KNOWN_FAILURES。",
+    prompt="读 docs/loopforge/srs/<需求名>.md + docs/loopforge/design/<需求名>.md，为验证组 <组> 生成 testplan + 测试代码 + runner。你只能写 $TEST_ROOT 和 docs/loopforge/verification/。功能未实现 → 写会 FAIL 的断言，不许 skip，不许登记进 KNOWN_FAILURES。",
     subagent_type="test-author"
 )
 
@@ -315,14 +315,14 @@ Agent(
 # [4] 实现修复（仅当 [3] 判定为缺实现）
 Agent(
     description="补实现",
-    prompt="读 docs/design/<需求名>.md。按以下缺口清单补实现，只能写 $IMPL_ROOT：\n<test-runner 报告的 [GAP]/[FAIL] 原文摘录>\n设计文档没定义的行为不要自己发明，返回 [设计缺口]。",
+    prompt="读 docs/loopforge/design/<需求名>.md。按以下缺口清单补实现，只能写 $IMPL_ROOT：\n<test-runner 报告的 [GAP]/[FAIL] 原文摘录>\n设计文档没定义的行为不要自己发明，返回 [设计缺口]。",
     subagent_type="impl-coder"
 )
 
 # [5] 门判定
 Agent(
     description="Stage 4 门判定",
-    prompt="gate-checker：读 docs/goal.md，跑 stage=4 的全部门（G3.x）+ G5.x 越权检测。越权判定读 docs/loop-status.md 的 DISPATCH 块取 allowed 字段。判定命令一律走 bash -c。",
+    prompt="gate-checker：读 docs/loopforge/goal.md，跑 stage=4 的全部门（G3.x）+ G5.x 越权检测。越权判定读 docs/loopforge/loop-status.md 的 DISPATCH 块取 allowed 字段。判定命令一律走 bash -c。",
     subagent_type="gate-checker"
 )
 ```
@@ -353,15 +353,15 @@ Agent(
 # Round 1
 Agent(
     description="Round 1 独立审计",
-    prompt="你是交付审计员，Round 1。独立审计 A~E 维度（功能完整性/测试方案/测试真绿性/覆盖矩阵/红线合规）。输入：docs/srs/ docs/design/ src/ tests/ + test-runner 最新报告 + gate-checker 门报告。你没有 Bash——不要跑测试，读产物判断。必须做≥3 处断言溯源抽查。产出 P0/P1/P2 清单。",
+    prompt="你是交付审计员，Round 1。独立审计 A~E 维度（功能完整性/测试方案/测试真绿性/覆盖矩阵/红线合规）。输入：docs/loopforge/srs/ docs/loopforge/design/ src/ loopforge-tests/ + test-runner 最新报告 + gate-checker 门报告。你没有 Bash——不要跑测试，读产物判断。必须做≥3 处断言溯源抽查。产出 P0/P1/P2 清单。",
     subagent_type="goal-auditor"
 )
-# → 主 Claude 派 impl-coder / test-author 修全部 P0/P1 → 落 docs/audit/round1-fixes.md
+# → 主 Claude 派 impl-coder / test-author 修全部 P0/P1 → 落 docs/loopforge/audit/round1-fixes.md
 
 # Round 2（全新实例）
 Agent(
     description="Round 2 独立审计",
-    prompt="你是交付审计员，Round 2。🔴 禁止读取 docs/audit/goal-audit-round1-*.md 与 docs/audit/round1-fixes.md——当作这个项目从没被审过，独立重审。同 A~E 维度。",
+    prompt="你是交付审计员，Round 2。🔴 禁止读取 docs/loopforge/audit/goal-audit-round1-*.md 与 docs/loopforge/audit/round1-fixes.md——当作这个项目从没被审过，独立重审。同 A~E 维度。",
     subagent_type="goal-auditor"
 )
 ```
@@ -413,7 +413,7 @@ Agent(
 
 ## 十一、状态表（主 Claude 维护）
 
-`docs/loop-status.md` —— 这份文件同时是**防死循环计数器的存储**和**G5.6 越权检测的输入**。主 Claude 上下文被压缩后，Loop 状态靠它恢复。
+`docs/loopforge/loop-status.md` —— 这份文件同时是**防死循环计数器的存储**和**G5.6 越权检测的输入**。主 Claude 上下文被压缩后，Loop 状态靠它恢复。
 
 ```markdown
 ## Loop 状态 - <需求名>
@@ -452,7 +452,7 @@ allowed: src/
 ### 越权事件
 | 轮 | Agent | 越权内容 | 处置 |
 |:--|:--|:--|:--|
-| 4-2 | impl-coder | 改了 tests/test_R02.py:44 断言容差 | 已回滚，重派 test-author |
+| 4-2 | impl-coder | 改了 loopforge-tests/test_R02.py:44 断言容差 | 已回滚，重派 test-author |
 ```
 
 **三块内容都必须记**：
@@ -487,7 +487,7 @@ Windows 无 Git Bash 用 `.ps1` 版（`install.ps1` / `loopforge-init.ps1 -Local
 ## 十三、职责隔离自查（每轮 Stage 4 结束）
 
 - [ ] 本轮改 `src/` 的是 `impl-coder`？（不是主 Claude、不是 test-author）
-- [ ] 本轮改 `tests/` 的是 `test-author`？（不是 impl-coder）
+- [ ] 本轮改 `loopforge-tests/` 的是 `test-author`？（不是 impl-coder）
 - [ ] 本轮跑测试的是 `test-runner`？（不是写代码那个）
 - [ ] `git diff` 改动范围与派工职责一致？
 - [ ] `goal-auditor` 这轮调用过 Bash 吗？（应该零——它没这工具）

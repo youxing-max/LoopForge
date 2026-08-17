@@ -6,13 +6,13 @@
     "deny": [
       "Bash(sed -i:*)",
       "Bash(tee src/*)",
-      "Bash(tee tests/*)",
+      "Bash(tee loopforge-tests/*)",
       "Bash(cp:* src/*)",
       "Bash(mv:* src/*)",
-      "Bash(cp:* tests/*)",
-      "Bash(mv:* tests/*)",
+      "Bash(cp:* loopforge-tests/*)",
+      "Bash(mv:* loopforge-tests/*)",
       "Bash(rm -rf src*)",
-      "Bash(rm -rf tests*)",
+      "Bash(rm -rf loopforge-tests*)",
       "Bash(pip install:*)",
       "Bash(npm install:*)",
       "Bash(uv add:*)",
@@ -20,9 +20,9 @@
     ],
 
     "ask": [
-      "Edit(docs/goal.md)",
-      "Write(docs/goal.md)",
-      "Edit(tests/run_*.py)",
+      "Edit(docs/loopforge/goal.md)",
+      "Write(docs/loopforge/goal.md)",
+      "Edit(loopforge-tests/run_*.py)",
       "Edit(docs/role-permission-matrix.md)"
     ],
 
@@ -30,7 +30,7 @@
       "Read(**)",
       "Grep(**)",
       "Glob(**)",
-      "Bash(python tests/run_*.py:*)",
+      "Bash(python loopforge-tests/run_*.py:*)",
       "Bash(python -m pytest:*)",
       "Bash(pytest:*)",
       "Bash(mypy:*)",
@@ -49,8 +49,8 @@
   },
 
   "_ask_rationale": {
-    "docs/goal.md": "门是 Loop 的唯一判据，改门 = 改交付标准，必须人工确认",
-    "tests/run_*.py": "KNOWN_FAILURES / KNOWN_GAPS 在这里——最容易被用来把缺口合法化"
+    "docs/loopforge/goal.md": "门是 Loop 的唯一判据，改门 = 改交付标准，必须人工确认",
+    "loopforge-tests/run_*.py": "KNOWN_FAILURES / KNOWN_GAPS 在这里——最容易被用来把缺口合法化"
   },
 
   "_shell_redirect_note": "重定向（> >>）无法可靠地用 permissions 规则拦截，因为它是 shell 语法不是命令名。真正的防线是 agent frontmatter 不给 Bash 工具（impl-coder / test-author / goal-auditor 都没有），以及 gate-checker 的 G5.x git diff 事后检测。",

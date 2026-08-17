@@ -3,7 +3,7 @@ name: loopforge-status
 description: 查看 Goal Loop 当前进度（只读，不做编排操作）。
 ---
 
-读 `<cwd>/docs/loop-status.md`，按以下格式输出摘要：
+读 `<cwd>/docs/loopforge/loop-status.md`，按以下格式输出摘要：
 
 ```
 ## Goal Loop 状态
@@ -27,5 +27,5 @@ description: 查看 Goal Loop 当前进度（只读，不做编排操作）。
 ## 规则
 
 - **只读**。不派 agent、不改文件、不推进 Loop
-- 若 `docs/loop-status.md` 不存在：输出"Goal Loop 尚未启动。用 `/loopforge <需求>` 启动"
-- 若存在多个批次状态文件（`docs/loop-status/batch-*.md`）：列出全部批次 + 询问用户看哪个
+- 若 `docs/loopforge/loop-status.md` 不存在：输出"Goal Loop 尚未启动。用 `/loopforge <需求>` 启动"
+- 若存在多个批次状态文件（`docs/loopforge/loop-status/batch-*.md`）：列出全部批次 + 询问用户看哪个

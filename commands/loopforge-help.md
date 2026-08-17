@@ -18,14 +18,14 @@ description: 列出 Goal Loop 全部可用命令与当前项目状态。
 ## 本项目状态
 
 <检查并输出：>
-- docs/goal.md 存在？ <是/否 — 否则 /loopforge 会自动建>
-- docs/goal-doc.md 已确认？ <是/否/未启动>
-- Loop 进行中？ <读 docs/loop-status.md 判断>
+- docs/loopforge/goal.md 存在？ <是/否 — 否则 /loopforge 会自动建>
+- docs/loopforge/goal-doc.md 已确认？ <是/否/未启动>
+- Loop 进行中？ <读 docs/loopforge/loop-status.md 判断>
 
 ## 更多文档
 
 - 命令规范：<SKILL_DOCS>/commands-spec.md
-- 门定义：docs/goal.md（本项目的，可裁剪）
+- 门定义：docs/loopforge/goal.md（本项目的，可裁剪）
 - 新手上手 / 项目详解：套件源目录的 docs/NEWBIE-GUIDE.md 与 docs/PROJECT-EXPLAINED.md
   （给人读的，不随安装拷贝）
 ```

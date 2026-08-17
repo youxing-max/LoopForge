@@ -6,10 +6,10 @@ description: 从 loop-status 恢复 Goal Loop（上下文压缩/会话中断后�
 按顺序读四份文件恢复状态（缺一不可，缺了如实报）：
 
 ```
-1. docs/goal-doc.md          → 项目目标（做什么）
-2. docs/goal.md              → 门定义（怎么算完成）
-3. docs/loop-status.md       → 当前进度（卡在哪）
-4. docs/change-log.md        → 变更记录（如有）
+1. docs/loopforge/goal-doc.md          → 项目目标（做什么）
+2. docs/loopforge/goal.md              → 门定义（怎么算完成）
+3. docs/loopforge/loop-status.md       → 当前进度（卡在哪）
+4. docs/loopforge/change-log.md        → 变更记录（如有）
 ```
 
 ## 恢复步骤

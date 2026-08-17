@@ -1,6 +1,6 @@
 # loop-status.md 字段规范（Loop Status Spec）
 
-> `docs/loop-status.md` 是 Loop 的**唯一状态来源**。上下文会压缩、会话会断——
+> `docs/loopforge/loop-status.md` 是 Loop 的**唯一状态来源**。上下文会压缩、会话会断——
 > 这份文件不会。所有命令（/loopforge /loopforge-status /loopforge-resume /loopforge-cancel）
 > 都读写它。字段不齐 = 恢复失败 = Loop 白跑。
 
@@ -42,7 +42,7 @@ allowed: <允许写的路径前缀>
 ### 越权事件
 | 轮 | Agent | 越权内容 | 处置 |
 |:--|:--|:--|:--|
-| 4-2 | impl-coder | 改了 tests/test_R02.py:44 | 已回滚，重派 |
+| 4-2 | impl-coder | 改了 loopforge-tests/test_R02.py:44 | 已回滚，重派 |
 
 **当前阻塞**：<门号 + 原因，或"无">
 **下一步**：<具体派工计划>
@@ -58,12 +58,12 @@ allowed: <允许写的路径前缀>
 |:--|:--|:--|:--|:--|
 | `round` | string | `<stage>-<N>`，如 `4-3` | 主 Claude | 每次派 agent **之前** |
 | `agent` | string | 9 个 agent 名之一 | 主 Claude | 同上 |
-| `allowed` | string | 路径前缀，如 `src/` `tests/` `docs/design/` | 主 Claude | 同上 |
+| `allowed` | string | 路径前缀，如 `src/` `loopforge-tests/` `docs/loopforge/design/` | 主 Claude | 同上 |
 
 **格式硬约束**：
 - 必须包在 `<!-- DISPATCH -->` / `<!-- /DISPATCH -->` 之间（gate-checker 用这个锚点提取）
 - 同一时刻只有**一个** DISPATCH 块（新派工覆盖旧的）
-- `allowed` 必须与被派 agent 的权限契约一致（impl-coder→`src/`，test-author→`tests/`，goal-architect→`docs/goal-doc`，等等）
+- `allowed` 必须与被派 agent 的权限契约一致（impl-coder→`src/`，test-author→`loopforge-tests/`，goal-architect→`docs/loopforge/goal-doc`，等等）
 
 **顺序铁律**：先写 DISPATCH → `git add -A && git commit` 打基线 → 再派 agent。颠倒 = 主 Claude 的状态改动被算进 agent 越权 = 活锁。
 
@@ -131,13 +131,13 @@ allowed: <允许写的路径前缀>
 
 ## 多批次变体
 
-大型项目每批次一份：`docs/loop-status/batch-A.md` 等，字段同上。
-外加 `docs/batches.md` 总表。G5.6 判定命令需把本批次状态文件加进白名单：
+大型项目每批次一份：`docs/loopforge/loop-status/batch-A.md` 等，字段同上。
+外加 `docs/loopforge/batches.md` 总表。G5.6 判定命令需把本批次状态文件加进白名单：
 
 ```bash
 git status --porcelain | cut -c4- \
   | awk -v ok="$ALLOWED" 'index($0,ok)==1{print}' \
-  | grep -v "^docs/loop-status/batch-${BATCH}\.md$"
+  | grep -v "^docs/loopforge/loop-status/batch-${BATCH}\.md$"
 ```
 
 ---
