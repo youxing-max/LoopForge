@@ -212,8 +212,6 @@ bash loopforge-init.sh        # 项目内（每项目一次）
 
 ---
 
-📄 完整带样式版已嵌入上方折叠块。
-
 <sub align="center">LoopForge v2.3 · 2026-08-15</sub>
 
 </details>
