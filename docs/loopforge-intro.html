@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>LoopForge · 大白话 5 分钟</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,Segoe UI,PingFang SC,sans-serif;background:#0f1115;color:#e7e9ee;line-height:1.6;padding:40px 20px;max-width:900px;margin:0 auto}
+  h1{font-size:48px;margin-bottom:10px;color:#7dd3fc}
+  h2{font-size:32px;margin:50px 0 20px;color:#fbbf24;border-left:6px solid #fbbf24;padding-left:14px}
+  h3{font-size:22px;margin:20px 0 10px;color:#a78bfa}
+  p,li{font-size:18px;margin:8px 0}
+  .sub{color:#9ca3af;font-size:16px;margin-bottom:30px}
+  .big{font-size:64px;text-align:center;margin:20px 0}
+  .box{background:#1a1d24;border-radius:14px;padding:24px;margin:20px 0;border:2px solid #2a2e38}
+  .warn{background:#3b1f1f;border-color:#ef4444;color:#fca5a5}
+  .ok{background:#0f2e1f;border-color:#22c55e;color:#86efac}
+  .tip{background:#1e293b;border-color:#3b82f6;color:#93c5fd}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0}
+  .card{background:#1a1d24;border-radius:12px;padding:20px;border:2px solid #2a2e38;text-align:center}
+  .emoji{font-size:56px;display:block;margin-bottom:10px}
+  .flow{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:center;margin:30px 0}
+  .step{background:#1e293b;padding:16px 20px;border-radius:10px;font-size:18px;min-width:140px;text-align:center;border:2px solid #7dd3fc}
+  .arrow{font-size:32px;color:#7dd3fc}
+  .role{display:inline-block;padding:8px 14px;border-radius:8px;margin:6px;font-size:16px;font-weight:bold}
+  .write{background:#1e40af;color:#bfdbfe}
+  .test{background:#7c2d12;color:#fed7aa}
+  .audit{background:#581c87;color:#e9d5ff}
+  .runner{background:#14532d;color:#bbf7d0}
+  .deny{background:#7f1d1d;color:#fecaca;text-decoration:line-through}
+  code{background:#0b0d12;padding:2px 8px;border-radius:4px;color:#fbbf24;font-family:Consolas,monospace}
+  .bigtext{font-size:28px;text-align:center;margin:20px;color:#fbbf24}
+</style>
+</head>
+<body>
+
+<h1>🛠️ LoopForge</h1>
+<p class="sub">让 AI 写代码这件事，像工厂流水线一样靠谱</p>
+
+<h2>它解决什么问题？</h2>
+<div class="bigtext">AI 写代码 = 不可信</div>
+
+<div class="box warn">
+  <p>😵 <b>现状痛点：</b></p>
+  <ul>
+    <li>写代码的 AI 自己测自己 = 自吹自擂</li>
+    <li>测试红了？改断言比改代码快 = 造假</li>
+    <li>代码写完没人盯 = 出问题没人认</li>
+  </ul>
+</div>
+
+<div class="box ok">
+  <p>✅ <b>LoopForge 的解法：</b></p>
+  <p>把"写 / 测 / 审"三件事<b>锁给三个不同的人</b>，互相看不见对方的工作区。</p>
+</div>
+
+<h2>🏭 一句话理解</h2>
+<div class="bigtext">工厂流水线 + 互相不串岗</div>
+<p style="text-align:center;font-size:20px">像汽车工厂：焊接工、车床工、质检员各管各的，谁也不能抢别人的活。</p>
+
+<h2>👥 9 个角色，干 3 件事</h2>
+
+<div class="box">
+  <p><span class="role write">✍️ 写代码的（4 个）</span></p>
+  <ul>
+    <li><code>goal-architect</code> · 目标架构师 · 问清楚你要啥</li>
+    <li><code>req-interrogator</code> · 需求拷问机 · 追问模糊点</li>
+    <li><code>srs-drafter</code> · 需求文档起草员 · 把需求写死</li>
+    <li><code>design-author</code> · 设计文档作者 · 画架构图</li>
+    <li><code>impl-coder</code> · 码农 · 只写 <code>src/</code></li>
+  </ul>
+
+  <p style="margin-top:18px"><span class="role test">📝 写测试的（1 个）</span></p>
+  <ul>
+    <li><code>test-author</code> · 测试员 · 只写 <code>tests/</code></li>
+  </ul>
+
+  <p style="margin-top:18px"><span class="role runner">🏃 跑测试的（1 个）</span></p>
+  <ul>
+    <li><code>test-runner</code> · 跑分员 · 只跑不写，汇报事实</li>
+  </ul>
+
+  <p style="margin-top:18px"><span class="role audit">🔍 审计的（3 个）</span></p>
+  <ul>
+    <li><code>gate-checker</code> · 门卫 · 机械检查清单 ✓✗</li>
+    <li><code>goal-auditor</code> · 终审 · 双轮独立审计（fresh agent）</li>
+    <li>主 Claude · 调度员 · 只传话，不干活</li>
+  </ul>
+</div>
+
+<h2>🔒 锁权限 · 关键一招</h2>
+
+<div class="bigtext">写代码的 <span style="color:#ef4444">跑不了测试</span><br>跑测试的 <span style="color:#ef4444">改不了代码</span><br>审计的 <span style="color:#ef4444">啥都不能动</span></div>
+
+<div class="box">
+  <p>不是靠"道德提醒"，是 <b>工具菜单直接砍掉</b>：</p>
+  <ul>
+    <li>码农 <code>impl-coder</code>：<code>tools: [Read,Edit,Write,Grep,Glob]</code> <span class="deny">无 Bash</span></li>
+    <li>测试员 <code>test-author</code>：同上 <span class="deny">无 Bash</span></li>
+    <li>跑分员 <code>test-runner</code>：<code>tools: [Read,Bash,Grep,Glob]</code> <span class="deny">无 Edit/Write</span></li>
+    <li>终审 <code>goal-auditor</code>：<code>tools: [Read,Grep,Glob]</code> <span class="deny">无 Bash 无 Edit</span></li>
+  </ul>
+</div>
+
+<h2>🔄 流水线长这样</h2>
+
+<div class="flow">
+  <div class="step">0. 定目标<br><small>goal.md</small></div>
+  <div class="arrow">→</div>
+  <div class="step">1. 拷问需求<br><small>req-*</small></div>
+  <div class="arrow">→</div>
+  <div class="step">2. 写 SRS<br><small>srs-drafter</small></div>
+  <div class="arrow">→</div>
+  <div class="step">3. 写设计<br><small>design-author</small></div>
+  <div class="arrow">→</div>
+  <div class="step">4. 写→跑→改 循环<br><small>三方交替</small></div>
+  <div class="arrow">→</div>
+  <div class="step">5. 双轮审计<br><small>2 个 fresh agent</small></div>
+  <div class="arrow">→</div>
+  <div class="step" style="background:#14532d;border-color:#22c55e">✅ 交付</div>
+</div>
+
+<div class="box tip">
+  <p>🚧 <b>Stage 4 内循环</b>（最核心）：</p>
+  <p style="font-size:20px;text-align:center;margin:14px 0">
+    test-author 写测试 → test-runner 跑 → 主 Claude 看报告 → fail 就派 impl-coder 改 → 再跑 → 全绿才放行
+  </p>
+</div>
+
+<h2>🚪 Goal 门 · 每阶段必须过</h2>
+
+<div class="grid">
+  <div class="card"><span class="emoji">🚪</span><b>G0</b><br>需求拷问够清</div>
+  <div class="card"><span class="emoji">🚪</span><b>G1</b><br>SRS 可机读</div>
+  <div class="card"><span class="emoji">🚪</span><b>G2</b><br>设计覆盖全</div>
+  <div class="card"><span class="emoji">🚪</span><b>G3</b><br>测试全绿</div>
+  <div class="card" style="background:#3b1f1f;border-color:#ef4444"><span class="emoji">🚨</span><b>G5</b><br>越权检测</div>
+  <div class="card"><span class="emoji">🚪</span><b>G4</b><br>双轮审计</div>
+</div>
+
+<div class="box warn">
+  <p>🚨 <b>G5 越权门最狠：</b>事后 <code>git diff</code> 检查有没有人越权。发现 → 本轮作废 → 滚回去重派。</p>
+</div>
+
+<h2>🆚 对比一下</h2>
+
+<div class="box">
+  <p><b>普通 Claude Code：</b></p>
+  <p>😬 一个 AI 写 + 测 + 审 = 自欺欺人</p>
+</div>
+
+<div class="box ok">
+  <p><b>LoopForge：</b></p>
+  <p>😎 9 个 AI 各管一摊 + 工具锁死 + 门卫把门 + 双轮审计</p>
+</div>
+
+<h2>🎯 适合谁？</h2>
+<div class="grid">
+  <div class="card ok"><span class="emoji">✅</span>中大型项目</div>
+  <div class="card ok"><span class="emoji">✅</span>需求模糊但要交付</div>
+  <div class="card ok"><span class="emoji">✅</span>怕 AI 偷懒造假</div>
+  <div class="card warn"><span class="emoji">❌</span>一次性脚本</div>
+  <div class="card warn"><span class="emoji">❌</span>玩具 / MVP 试错</div>
+  <div class="card warn"><span class="emoji">❌</span>5 分钟小工具</div>
+</div>
+
+<h2>⏱️ 安装</h2>
+<div class="box">
+  <p style="font-size:20px;text-align:center">
+    <code>bash scripts/install.sh</code><br>
+    <span style="color:#9ca3af;font-size:16px">↓</span><br>
+    <code>bash loopforge-init.sh</code> （项目内）<br>
+    <span style="color:#9ca3af;font-size:16px">↓</span><br>
+    <code>/loopforge 我要做 XXX</code>
+  </p>
+  <p style="text-align:center;margin-top:14px;color:#86efac">⚡ 两步 5 分钟装完</p>
+</div>
+
+<h2>🎓 一句话总结</h2>
+<div class="bigtext" style="font-size:36px;color:#7dd3fc">
+  不是"提醒 AI 别作弊"<br>而是"让作弊做不到"
+</div>
+
+<p style="text-align:center;margin-top:40px;color:#6b7280;font-size:14px">
+  LoopForge v2.3 · 2026-08-15 · github.com/youxing-max/LoopForge
+</p>
+
+</body>
+</html>

@@ -5,6 +5,221 @@
 > 适用：任何需要「模糊需求 → 项目目标书 → SRS → 设计 → 代码 → 测试 → 验收」闭环的复杂项目
 > 🚀 **安装看 [INSTALL.md](INSTALL.md)**（两步 5 分钟）· **新手看 [docs/NEWBIE-GUIDE.md](docs/NEWBIE-GUIDE.md)** · **想搞懂每个文件干啥看 [docs/PROJECT-EXPLAINED.md](docs/PROJECT-EXPLAINED.md)**
 
+## 🛠️ LoopForge · 大白话 5 分钟
+
+> 让 AI 写代码这件事，像工厂流水线一样靠谱
+
+<details>
+<summary>📄 <b>点击展开 / 折叠完整图文介绍</b>（移动端友好）</summary>
+
+<div align="center">
+
+# 🛠️ LoopForge
+**让 AI 写代码这件事，像工厂流水线一样靠谱**
+
+</div>
+
+---
+
+## 它解决什么问题？
+
+<div align="center">
+
+### AI 写代码 = 不可信
+
+</div>
+
+<table>
+<tr>
+<td width="50%" bgcolor="#3b1f1f">
+
+😵 **现状痛点：**
+- 写代码的 AI 自己测自己 = 自吹自擂
+- 测试红了？改断言比改代码快 = 造假
+- 代码写完没人盯 = 出问题没人认
+
+</td>
+<td width="50%" bgcolor="#0f2e1f">
+
+✅ **LoopForge 的解法：**
+- 把"写 / 测 / 审"三件事**锁给三个不同的人**
+- 互相看不见对方的工作区
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🏭 一句话理解
+
+<div align="center">
+
+### 工厂流水线 + 互相不串岗
+
+*像汽车工厂：焊接工、车床工、质检员各管各的，谁也不能抢别人的活。*
+
+</div>
+
+---
+
+## 👥 9 个角色，干 3 件事
+
+<table>
+<tr><th colspan="2" align="left">✍️ 写代码的（5 个）</th></tr>
+<tr><td><code>goal-architect</code></td><td>目标架构师 · 问清楚你要啥</td></tr>
+<tr><td><code>req-interrogator</code></td><td>需求拷问机 · 追问模糊点</td></tr>
+<tr><td><code>srs-drafter</code></td><td>需求文档起草员 · 把需求写死</td></tr>
+<tr><td><code>design-author</code></td><td>设计文档作者 · 画架构图</td></tr>
+<tr><td><code>impl-coder</code></td><td>码农 · 只写 <code>src/</code></td></tr>
+
+<tr><th colspan="2" align="left">📝 写测试的（1 个）</th></tr>
+<tr><td><code>test-author</code></td><td>测试员 · 只写 <code>tests/</code></td></tr>
+
+<tr><th colspan="2" align="left">🏃 跑测试的（1 个）</th></tr>
+<tr><td><code>test-runner</code></td><td>跑分员 · 只跑不写，汇报事实</td></tr>
+
+<tr><th colspan="2" align="left">🔍 审计的（3 个）</th></tr>
+<tr><td><code>gate-checker</code></td><td>门卫 · 机械检查清单 ✓✗</td></tr>
+<tr><td><code>goal-auditor</code></td><td>终审 · 双轮独立审计（fresh agent）</td></tr>
+<tr><td>主 Claude</td><td>调度员 · 只传话，不干活</td></tr>
+</table>
+
+---
+
+## 🔒 锁权限 · 关键一招
+
+<div align="center">
+
+### 🔴 写代码的 <span style="color:#ef4444">跑不了测试</span>
+### 🔴 跑测试的 <span style="color:#ef4444">改不了代码</span>
+### 🔴 审计的 <span style="color:#ef4444">啥都不能动</span>
+
+</div>
+
+不是靠"道德提醒"，是 **工具菜单直接砍掉**：
+
+| Agent | 允许的 tools | 禁用 |
+|:--|:--|:--|
+| 码农 `impl-coder` | `Read, Edit, Write, Grep, Glob` | ~~Bash~~ |
+| 测试员 `test-author` | `Read, Edit, Write, Grep, Glob` | ~~Bash~~ |
+| 跑分员 `test-runner` | `Read, Bash, Grep, Glob` | ~~Edit / Write~~ |
+| 终审 `goal-auditor` | `Read, Grep, Glob` | ~~Bash / Edit~~ |
+
+---
+
+## 🔄 流水线长这样
+
+<table align="center">
+<tr>
+<td align="center">0️⃣<br><b>定目标</b><br><sub>goal.md</sub></td>
+<td align="center">➡️</td>
+<td align="center">1️⃣<br><b>拷问需求</b><br><sub>req-*</sub></td>
+<td align="center">➡️</td>
+<td align="center">2️⃣<br><b>写 SRS</b><br><sub>srs-drafter</sub></td>
+<td align="center">➡️</td>
+<td align="center">3️⃣<br><b>写设计</b><br><sub>design-author</sub></td>
+<td align="center">➡️</td>
+<td align="center">4️⃣<br><b>写→跑→改</b><br><sub>三方交替</sub></td>
+<td align="center">➡️</td>
+<td align="center">5️⃣<br><b>双轮审计</b><br><sub>2 个 fresh agent</sub></td>
+<td align="center">➡️</td>
+<td align="center" bgcolor="#22c55e"><b>✅ 交付</b></td>
+</tr>
+</table>
+
+> 🚧 **Stage 4 内循环（最核心）：**
+>
+> `test-author` 写测试 → `test-runner` 跑 → 主 Claude 看报告 → fail 就派 `impl-coder` 改 → 再跑 → 全绿才放行
+
+---
+
+## 🚪 Goal 门 · 每阶段必须过
+
+<table>
+<tr>
+<td align="center">🚪<br><b>G0</b><br>需求拷问够清</td>
+<td align="center">🚪<br><b>G1</b><br>SRS 可机读</td>
+<td align="center">🚪<br><b>G2</b><br>设计覆盖全</td>
+<td align="center">🚪<br><b>G3</b><br>测试全绿</td>
+<td align="center" bgcolor="#3b1f1f">🚨<br><b>G5</b><br>越权检测</td>
+<td align="center">🚪<br><b>G4</b><br>双轮审计</td>
+</tr>
+</table>
+
+> 🚨 **G5 越权门最狠：** 事后 `git diff` 检查有没有人越权。发现 → 本轮作废 → 滚回去重派。
+
+---
+
+## 🆚 对比一下
+
+<table>
+<tr>
+<td width="50%">
+
+😬 **普通 Claude Code：**
+> 一个 AI 写 + 测 + 审 = 自欺欺人
+
+</td>
+<td width="50%" bgcolor="#0f2e1f">
+
+😎 **LoopForge：**
+> 9 个 AI 各管一摊 + 工具锁死 + 门卫把门 + 双轮审计
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🎯 适合谁？
+
+<table>
+<tr>
+<td align="center">✅ 中大型项目</td>
+<td align="center">✅ 需求模糊但要交付</td>
+<td align="center">✅ 怕 AI 偷懒造假</td>
+</tr>
+<tr>
+<td align="center" bgcolor="#3b1f1f">❌ 一次性脚本</td>
+<td align="center" bgcolor="#3b1f1f">❌ 玩具 / MVP 试错</td>
+<td align="center" bgcolor="#3b1f1f">❌ 5 分钟小工具</td>
+</tr>
+</table>
+
+---
+
+## ⏱️ 安装
+
+```bash
+bash scripts/install.sh        # 全局层（一次）
+bash loopforge-init.sh        # 项目内（每项目一次）
+/loopforge 我要做 XXX          # 开跑
+```
+
+⚡ **两步 5 分钟装完**
+
+---
+
+## 🎓 一句话总结
+
+<div align="center">
+
+## 不是"提醒 AI 别作弊"
+## 而是"让作弊做不到"
+
+</div>
+
+---
+
+📄 完整带样式版（卡片 / 配色）：[`docs/loopforge-intro.html`](docs/loopforge-intro.html)
+
+<sub align="center">LoopForge v2.3 · 2026-08-15</sub>
+
+</details>
+
+---
+
 ## 快速开始
 
 ```bash
